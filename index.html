@@ -9,7 +9,7 @@
         :root { --primary: #004d3d; --accent: #c1ff00; --bg: #f0f4f2; }
         body { font-family: 'Arial', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         .card { background: white; padding: 20px; border-radius: 15px; border: 2px solid var(--primary); width: 100%; max-width: 480px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
-        .status-gif { width: 100%; border-radius: 10px; margin-bottom: 15px; height: 180px; object-fit: cover; }
+        .status-gif { display: block; margin: 0 auto 15px auto; max-width: 220px; height: auto; border-radius: 12px; }
         input, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         button:active { transform: scale(0.98); }
@@ -101,11 +101,7 @@
 
         let miNombre = "";
         let esAdmin = false;
-        const GIFS = {
-            espera: "https://media1.tenor.com/m/Ayzh8aM2iKAAAAAd/novak-djokovic-goat.gif",
-            falla: "https://media1.tenor.com/m/O2cp0tJpUkQAAAAd/novak-djokovic-angry.gif",
-            acierta: "https://media1.tenor.com/m/3QhOPLGp9sUAAAAd/tennisgifs-tennis.gif"
-        };
+        const IMAGEN_ESTADO = "Bilawal.jpeg";
 
         async function entrar() {
             miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
@@ -165,7 +161,7 @@
                 const wins2 = jg.correcta2 ? jg.correcta2.split(',').map(s => s.trim().toLowerCase()) : [];
                 const wins3 = jg.correcta3 ? jg.correcta3.split(',').map(s => s.trim().toLowerCase()) : [];
                 const acierto = wins2.includes(yo?.seleccion2?.toLowerCase()) || wins3.includes(yo?.seleccion3?.toLowerCase());
-                gif.src = acierto ? GIFS.acierta : GIFS.falla;
+                gif.src = IMAGEN_ESTADO
                 r2.innerHTML = `Ganadores (+1): <b>${jg.correcta2}</b>`;
                 r3.innerHTML = `Ganadores (+3): <b>${jg.correcta3}</b>`;
                 btn.classList.add('hidden');
@@ -173,7 +169,7 @@
                 if(!yo?.seleccion2) {
                     const yaMarcado = document.querySelector('input[name="c2"]:checked');
                     if(!yaMarcado) { // Evita borrar opciones mientras el usuario elige
-                        gif.src = GIFS.espera;
+                        gif.src = IMAGEN_ESTADO
                         btn.classList.remove('hidden');
                         r2.innerHTML = jg.opciones2.map(o => `<label><input type="radio" name="c2" value="${o}"> ${o}</label><br>`).join('');
                         r3.innerHTML = jg.opciones3.map(o => `<label><input type="radio" name="c3" value="${o}"> ${o}</label><br>`).join('');
