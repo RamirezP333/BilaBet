@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Djokovic Challenge - Detronia</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #004d3d; --accent: #c1ff00; --bg: #f0f4f2; }
+        body { font-family: 'Arial', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 15px; border: 2px solid var(--primary); width: 100%; max-width: 480px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .status-gif { width: 100%; border-radius: 10px; margin-bottom: 15px; height: 180px; object-fit: cover; }
+        input, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
+        .btn-del { background: #ef4444; width: auto; padding: 5px 10px; font-size: 12px; margin-left: 5px; }
+        .hidden { display: none !important; }
+        .admin-section { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: left; border: 1px solid #cbd5e1; }
+        .table-mini { width: 100%; font-size: 12px; border-collapse: collapse; background: white; margin-top: 10px; }
+        .table-mini td { border: 1px solid #ddd; padding: 5px; text-align: center; }
+        .info-table-user { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        .info-table-user th { background: #fbc02d; padding: 8px; border: 1px solid #ddd; }
+        .info-table-user td { padding: 8px; border: 1px solid #eee; text-align: center; background: #fff; }
+        .am { background: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px; }
+        .ro { background: #f44336; color: white; font-weight: bold; padding: 2px 4px; border-radius: 3px; }
+        .vote-box { background: #fffde7; padding: 10px; border-radius: 10px; border-left: 5px solid var(--primary); margin: 10px 0; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-ui" class="card">
+        <img src="https://i.postimg.cc/FzXJKQQQ/Captura-de-pantalla-2026-02-02-113118.png" style="width:100%; border-radius:10px;">
+        <input type="text" id="username" placeholder="@tu_instagram">
+        <button onclick="entrar()">JUGAR</button>
+        <button onclick="accesoAdmin()" style="background:#64748b; margin-top:10px; font-size:12px;">MODO ADMIN</button>
+    </div>
+
+    <div id="admin-ui" class="card hidden">
+        <h3>🛠️ PANEL MASTER</h3>
+        <div class="admin-section">
+            <h4>1. Tabla de Apoyo</h4>
+            <input type="text" id="info-sujeto" placeholder="Jugador">
+            <input type="text" id="info-goles" placeholder="Goles">
+            <div style="display:flex; gap:5px;">
+                <input type="number" id="info-am" placeholder="AM">
+                <input type="number" id="info-ro" placeholder="RO">
+            </div>
+            <button onclick="guardarFila()" style="background:#22c55e">AÑADIR / ACTUALIZAR</button>
+            <table class="table-mini"><tbody id="adm-list-stats"></tbody></table>
+        </div>
+
+        <div class="admin-section">
+            <h4>2. Ranking (Editar)</h4>
+            <table class="table-mini"><tbody id="adm-list-ranking"></tbody></table>
+        </div>
+
+        <div class="admin-section">
+            <h4>3. Ronda (+1 y +3)</h4>
+            <textarea id="adm-o2" placeholder="Opciones 1 PTO (Ej: Messi, Cristiano)"></textarea>
+            <textarea id="adm-o3" placeholder="Opciones 3 PTOS (Ej: 2-1, 3-0)"></textarea>
+            <button onclick="lanzar()" style="background:#2563eb">ACTIVAR RONDA</button>
+            <hr>
+            <input type="text" id="win2" placeholder="Ganadores 1 PTO (comas)">
+            <input type="text" id="win3" placeholder="Ganadores 3 PTOS (comas)">
+            <button onclick="puntuar()" style="background:#f59e0b">VALIDAR GANADORES</button>
+        </div>
+        <button onclick="location.reload()" style="background:black">CERRAR PANEL</button>
+    </div>
+
+    <div id="game-ui" class="card hidden">
+        <img id="display-gif" src="https://media1.tenor.com/m/Ayzh8aM2iKAAAAAd/novak-djokovic-goat.gif" class="status-gif">
+        <h3 id="user-display"></h3>
+
+        <div class="card" style="border:none; background:#fffde7; padding:10px; width:100%; margin:0;">
+            <h4>📊 ESTADÍSTICAS</h4>
+            <table class="info-table-user">
+                <thead>
+                    <tr><th rowspan="2">JUGADOR</th><th rowspan="2">GOL</th><th colspan="2">TARJETAS</th></tr>
+                    <tr><th style="background:#ffeb3b">AM</th><th style="background:#f44336; color:white">RO</th></tr>
+                </thead>
+                <tbody id="info-content-user"></tbody>
+            </table>
+        </div>
+
+        <div id="votos-ui">
+            <div class="vote-box"><strong>VALE 1 PUNTO:</strong><div id="render-o2"></div></div>
+            <div class="vote-box"><strong>VALE 3 PUNTOS:</strong><div id="render-o3"></div></div>
+            <button id="btn-votar" onclick="votar()" class="hidden" style="background:#22c55e">ENVIAR VOTOS</button>
+        </div>
+
+        <div style="margin-top:20px;">
+            <h4>🏆 RANKING</h4>
+            <div id="ranking-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const SB_URL = 'https://hhkplxfousaoyjfpnllo.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoa3BseGZvdXNhb3lqZnBubGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4Njc4NTMsImV4cCI6MjA4NzQ0Mzg1M30.SPbJIeYBRm9yBdIZPXh3HSM88k73McLZIAzfhMZWEj0';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        let miNombre = "";
+        let esAdmin = false;
+        const GIFS = {
+            espera: "https://media1.tenor.com/m/Ayzh8aM2iKAAAAAd/novak-djokovic-goat.gif",
+            falla: "https://media1.tenor.com/m/O2cp0tJpUkQAAAAd/novak-djokovic-angry.gif",
+            acierta: "https://media1.tenor.com/m/3QhOPLGp9sUAAAAd/tennisgifs-tennis.gif"
+        };
+
+        async function entrar() {
+            miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
+            if(!miNombre) return;
+            await sb.from('jugadores').upsert({ nombre: miNombre }, { onConflict: 'nombre' });
+            document.getElementById('auth-ui').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            document.getElementById('user-display').innerText = "@" + miNombre;
+            iniciar();
+        }
+
+        function accesoAdmin() {
+            if(prompt("Clave:") === "TrustTheBlan") {
+                esAdmin = true;
+                document.getElementById('auth-ui').classList.add('hidden');
+                document.getElementById('admin-ui').classList.remove('hidden');
+                document.getElementById('game-ui').classList.remove('hidden');
+                iniciar();
+            }
+        }
+
+        async function guardarFila() {
+            const s = document.getElementById('info-sujeto').value.trim();
+            const g = document.getElementById('info-goles').value;
+            const a = document.getElementById('info-am').value || 0;
+            const r = document.getElementById('info-ro').value || 0;
+            if(!s) return alert("Nombre obligatorio");
+            await sb.from('estadisticas').upsert({ sujeto: s, dato1: g, dato2: a, dato3: r }, { onConflict: 'sujeto' });
+            document.getElementById('info-sujeto').value = "";
+        }
+
+        async function eliminarFila(sujeto) {
+            if(confirm("¿Eliminar permanentemente a " + sujeto + "?")) {
+                await sb.from('estadisticas').delete().eq('sujeto', sujeto);
+            }
+        }
+
+        async function refrescar() {
+            const { data: st } = await sb.from('estadisticas').select('*').order('sujeto');
+            const { data: rk } = await sb.from('jugadores').select('*').order('puntos', {ascending: false});
+            const { data: jg } = await sb.from('estado_juego').select('*').single();
+            const { data: yo } = await sb.from('jugadores').select('*').eq('nombre', miNombre).single();
+
+            if(esAdmin) {
+                document.getElementById('adm-list-stats').innerHTML = st.map(s => `<tr><td>${s.sujeto}</td><td><button onclick="editEst('${s.sujeto}','${s.dato1}',${s.dato2},${s.dato3})">✎</button><button class="btn-del" onclick="eliminarFila('${s.sujeto}')">X</button></td></tr>`).join('');
+                document.getElementById('adm-list-ranking').innerHTML = rk.map(j => `<tr><td>@${j.nombre}</td><td>${j.puntos}</td><td><button onclick="editPts('${j.nombre}',${j.puntos})">✎</button></td></tr>`).join('');
+            }
+
+            document.getElementById('info-content-user').innerHTML = st.map(s => `<tr><td><b>${s.sujeto}</b></td><td>${s.dato1}</td><td><span class="am">${s.dato2}</span></td><td><span class="ro">${s.dato3}</span></td></tr>`).join('');
+
+            const gif = document.getElementById('display-gif');
+            const r2 = document.getElementById('render-o2');
+            const r3 = document.getElementById('render-o3');
+            const btn = document.getElementById('btn-votar');
+
+            if(jg.ronda_id === 1) {
+                const wins2 = jg.correcta2 ? jg.correcta2.split(',').map(s => s.trim().toLowerCase()) : [];
+                const wins3 = jg.correcta3 ? jg.correcta3.split(',').map(s => s.trim().toLowerCase()) : [];
+                const acierto = wins2.includes(yo?.seleccion2?.toLowerCase()) || wins3.includes(yo?.seleccion3?.toLowerCase());
+                gif.src = acierto ? GIFS.acierta : GIFS.falla;
+                r2.innerHTML = `Ganadores (+1): <b>${jg.correcta2}</b>`;
+                r3.innerHTML = `Ganadores (+3): <b>${jg.correcta3}</b>`;
+                btn.classList.add('hidden');
+            } else if(jg.opciones2?.length > 0) {
+                if(!yo?.seleccion2) {
+                    const yaMarcado = document.querySelector('input[name="c2"]:checked');
+                    if(!yaMarcado) { // Evita borrar opciones mientras el usuario elige
+                        gif.src = GIFS.espera;
+                        btn.classList.remove('hidden');
+                        r2.innerHTML = jg.opciones2.map(o => `<label><input type="radio" name="c2" value="${o}"> ${o}</label><br>`).join('');
+                        r3.innerHTML = jg.opciones3.map(o => `<label><input type="radio" name="c3" value="${o}"> ${o}</label><br>`).join('');
+                    }
+                } else {
+                    r2.innerHTML = "Voto enviado ✅"; r3.innerHTML = "Voto enviado ✅"; btn.classList.add('hidden');
+                }
+            }
+            document.getElementById('ranking-list').innerHTML = rk.map(j => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;"><span>@${j.nombre}</span><b>${j.puntos} Pts</b></div>`).join('');
+        }
+
+        async function lanzar() {
+            const o2 = document.getElementById('adm-o2').value.split(',').map(x=>x.trim());
+            const o3 = document.getElementById('adm-o3').value.split(',').map(x=>x.trim());
+            await sb.from('estado_juego').update({ opciones2: o2, opciones3: o3, correcta2: null, correcta3: null, ronda_id: 0 }).eq('id', 1);
+            await sb.from('jugadores').update({ seleccion2: null, seleccion3: null }).neq('nombre','');
+            alert("Ronda Iniciada");
+        }
+
+        async function votar() {
+            const v2 = document.querySelector('input[name="c2"]:checked')?.value;
+            const v3 = document.querySelector('input[name="c3"]:checked')?.value;
+            if(!v2 || !v3) return alert("Elige ambas opciones");
+            await sb.from('jugadores').update({ seleccion2: v2, seleccion3: v3 }).eq('nombre', miNombre);
+        }
+
+        async function puntuar() {
+            const w2 = document.getElementById('win2').value.split(',').map(x => x.trim());
+            const w3 = document.getElementById('win3').value.split(',').map(x => x.trim());
+            await sb.rpc('validar_y_puntuar', { c2: w2, c3: w3 });
+            alert("Puntos asignados a los ganadores.");
+        }
+
+        function iniciar() {
+            sb.channel('db').on('postgres_changes', { event: '*', schema: 'public' }, () => refrescar()).subscribe();
+            refrescar();
+            setInterval(refrescar, 5000);
+        }
+
+        function editEst(s, g, a, r) {
+            document.getElementById('info-sujeto').value = s;
+            document.getElementById('info-goles').value = g;
+            document.getElementById('info-am').value = a;
+            document.getElementById('info-ro').value = r;
+        }
+
+        async function editPts(nom, pts) {
+            const n = prompt(`Puntos para @${nom}:`, pts);
+            if(n !== null) await sb.from('jugadores').update({ puntos: parseInt(n) }).eq('nombre', nom);
+        }
+    </script>
+</body>
+</html>
