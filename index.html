@@ -656,8 +656,8 @@
 
             const { error } = await sb.rpc('validar_y_puntuar', { c2: w2, c3: w3 });
             if (error) {
-                console.error(error);
-                return alert("Error validando ganadores. Revisa la función SQL en Supabase.");
+            console.error("RPC validar_y_puntuar error:", error);
+            return alert(`Error validando ganadores: ${error.message}`);
             }
 
             alert("Puntos asignados y rachas actualizadas ✅");
