@@ -350,13 +350,13 @@
                 const prevPos = prevMap[j.nombre];
 
                 if (!prevPos) {
-                    arrows[j.nombre] = { txt: '•', cls: 'arrow-same', flash: '' };
+                    arrows[j.nombre] = { txt: '', cls: 'arrow-same', flash: '' };
                 } else if (nowPos < prevPos) {
                     arrows[j.nombre] = { txt: `▲ ${prevPos - nowPos}`, cls: 'arrow-up', flash: 'flash-up' };
                 } else if (nowPos > prevPos) {
                     arrows[j.nombre] = { txt: `▼ ${nowPos - prevPos}`, cls: 'arrow-down', flash: 'flash-down' };
                 } else {
-                    arrows[j.nombre] = { txt: '•', cls: 'arrow-same', flash: '' };
+                    arrows[j.nombre] = { txt: '', cls: 'arrow-same', flash: '' };
                 }
             }
 
