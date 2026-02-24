@@ -57,7 +57,9 @@
         }
         .ranking-row:hover { background:#f8fafc; transform: translateY(-1px); }
         .ranking-left { display:flex; align-items:center; gap:8px; min-width:0; }
-        .ranking-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .ranking-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0f172a; font-weight: 700; }
+        .ranking-name-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .ranking-name-row .ranking-name { flex: 1; min-width: 0; }
         .ranking-meta { display:flex; align-items:center; gap:6px; font-size:12px; color:#64748b; }
         .badge-medal { font-size:18px; width:24px; text-align:center; }
         .badge-streak {
@@ -370,19 +372,21 @@
             list.innerHTML = conPos.map(j => {
                 const medal = medalMap[j.nombre] || '';
                 const arrow = arrowMap[j.nombre] || { txt: '•', cls: 'arrow-same', flash: '' };
-                const streakBadge = (j.racha_actual >= 2)
-                    ? `<span class="badge-streak">🔥 Racha x${j.racha_actual}</span>`
-                    : '';
-
+                const streakBadge = (j.racha_actual >= 1)
+                ? `<span class="badge-streak">🔥 ${j.racha_actual}</span>`
+                : '';
+            
                 return `
                     <div class="ranking-row ${arrow.flash}">
                         <div class="ranking-left">
                             <span class="badge-medal">${medal || ''}</span>
-                            <div>
-                                <div class="ranking-name">@${escapeHtml(j.nombre)}</div>
+                            <div style="min-width:0;">
+                                <div class="ranking-name-row">
+                                    <div class="ranking-name">@${escapeHtml(j.nombre)}</div>
+                                    ${streakBadge}
+                                </div>
                                 <div class="ranking-meta">
                                     <span class="${arrow.cls}">${arrow.txt}</span>
-                                    ${streakBadge}
                                 </div>
                             </div>
                         </div>
