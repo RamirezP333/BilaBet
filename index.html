@@ -112,7 +112,6 @@
         .check-item:last-child { border-bottom: none; }
         .check-item input { width:auto; margin:0; transform: scale(1.1); }
 
-        /* ✅ NUEVO: opciones de voto bonitas y alineadas en móvil */
         .pick-item{
             display:flex;
             align-items:center;
@@ -189,7 +188,19 @@
                 </div>
             </div>
 
-            <button onclick="actualizarPuntosUsuario()" style="background:#2563eb">ACTUALIZAR PUNTOS</button>
+            <!-- ✅ NUEVO: modificar racha -->
+            <div class="admin-grid-2">
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Racha actual</label>
+                    <input type="number" id="adm-user-streak" placeholder="Racha">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Mejor racha</label>
+                    <input type="number" id="adm-user-beststreak" placeholder="Mejor racha">
+                </div>
+            </div>
+
+            <button onclick="actualizarUsuarioAdmin()" style="background:#2563eb">ACTUALIZAR (PTS + RACHA)</button>
             <button onclick="eliminarUsuarioSeleccionado()" style="background:#ef4444">ELIMINAR USUARIO</button>
         </div>
 
@@ -536,10 +547,14 @@
             if (!u) {
                 document.getElementById('adm-user-points').value = "";
                 document.getElementById('adm-user-credits').value = "";
+                document.getElementById('adm-user-streak').value = "";
+                document.getElementById('adm-user-beststreak').value = "";
                 return;
             }
             document.getElementById('adm-user-points').value = u.puntos ?? 0;
             document.getElementById('adm-user-credits').value = u.creditos ?? 0;
+            document.getElementById('adm-user-streak').value = u.racha_actual ?? 0;
+            document.getElementById('adm-user-beststreak').value = u.mejor_racha ?? 0;
         }
 
         async function eliminarJugadorSeleccionado() {
@@ -568,16 +583,29 @@
             refrescar();
         }
 
-        async function actualizarPuntosUsuario() {
+        async function actualizarUsuarioAdmin() {
             const nom = document.getElementById('adm-select-user').value;
             if (!nom) return alert("Selecciona un usuario.");
 
-            const val = parseInt(document.getElementById('adm-user-points').value, 10);
-            if (Number.isNaN(val)) return alert("Introduce un número válido.");
+            const pts = parseInt(document.getElementById('adm-user-points').value, 10);
+            const racha = parseInt(document.getElementById('adm-user-streak').value, 10);
+            const mejor = parseInt(document.getElementById('adm-user-beststreak').value, 10);
 
-            const { error } = await sb.from('jugadores').update({ puntos: val }).eq('nombre', nom);
-            if (error) { console.error(error); return alert("Error actualizando puntos."); }
-            alert("Puntos actualizados ✅");
+            if (Number.isNaN(pts) || pts < 0) return alert("Puntos inválidos.");
+            if (Number.isNaN(racha) || racha < 0) return alert("Racha inválida.");
+            if (Number.isNaN(mejor) || mejor < 0) return alert("Mejor racha inválida.");
+
+            const mejorFinal = Math.max(mejor, racha);
+
+            const { error } = await sb.from('jugadores').update({
+                puntos: pts,
+                racha_actual: racha,
+                mejor_racha: mejorFinal
+            }).eq('nombre', nom);
+
+            if (error) { console.error(error); return alert("Error actualizando usuario."); }
+
+            alert("Usuario actualizado ✅");
             refrescar();
         }
 
