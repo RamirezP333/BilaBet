@@ -49,6 +49,18 @@
             font-size: 14px;
         }
 
+        .wallet {
+            margin-top: 6px;
+            display:inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid #e2e8f0;
+            background:#f8fafc;
+            color:#0f172a;
+            font-weight:700;
+        }
+
         .ranking-row {
             display:flex; justify-content:space-between; align-items:center;
             gap:8px; padding:8px 6px; border-bottom:1px solid #eee;
@@ -70,12 +82,8 @@
         .arrow-down { color:#dc2626; font-weight:bold; }
         .arrow-same { color:#94a3b8; font-weight:bold; }
 
-        .flash-up {
-            animation: pulseUp 0.7s ease;
-        }
-        .flash-down {
-            animation: pulseDown 0.7s ease;
-        }
+        .flash-up { animation: pulseUp 0.7s ease; }
+        .flash-down { animation: pulseDown 0.7s ease; }
         @keyframes pulseUp {
             0% { background:#ecfdf5; transform:translateY(0); }
             50% { background:#dcfce7; transform:translateY(-2px); }
@@ -101,24 +109,55 @@
         <h3>🛠️ PANEL ADMIN</h3>
 
         <div class="admin-section">
-            <h4>1. Tabla de Apoyo</h4>
+            <h4>1. Jugadores (Tabla de apoyo)</h4>
+
+            <label style="font-size:13px; font-weight:bold;">Seleccionar jugador</label>
+            <select id="adm-select-player" onchange="cargarPlayerSeleccionado()">
+                <option value="">(Nuevo jugador)</option>
+            </select>
+
             <input type="text" id="info-sujeto" placeholder="Jugador">
             <input type="text" id="info-goles" placeholder="Goles">
             <div style="display:flex; gap:5px;">
                 <input type="number" id="info-am" placeholder="AM">
                 <input type="number" id="info-ro" placeholder="RO">
             </div>
+
             <button onclick="guardarFila()" style="background:#22c55e">AÑADIR / ACTUALIZAR</button>
-            <table class="table-mini"><tbody id="adm-list-stats"></tbody></table>
+            <button onclick="eliminarJugadorSeleccionado()" style="background:#ef4444">ELIMINAR JUGADOR</button>
         </div>
 
         <div class="admin-section">
-            <h4>2. Ranking (Editar)</h4>
-            <table class="table-mini"><tbody id="adm-list-ranking"></tbody></table>
+            <h4>2. Usuarios (Ranking)</h4>
+
+            <label style="font-size:13px; font-weight:bold;">Seleccionar usuario</label>
+            <select id="adm-select-user" onchange="cargarUserSeleccionado()">
+                <option value="">(Selecciona un usuario)</option>
+            </select>
+
+            <div class="admin-grid-2">
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Puntos</label>
+                    <input type="number" id="adm-user-points" placeholder="Pts">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Créditos</label>
+                    <input type="number" id="adm-user-credits" placeholder="Créditos" disabled>
+                </div>
+            </div>
+
+            <button onclick="actualizarPuntosUsuario()" style="background:#2563eb">ACTUALIZAR PUNTOS</button>
+            <button onclick="eliminarUsuarioSeleccionado()" style="background:#ef4444">ELIMINAR USUARIO</button>
         </div>
 
         <div class="admin-section">
-            <h4>3. Ronda (+1 y +3)</h4>
+            <h4>3. Créditos semanales</h4>
+            <div class="small-help">Pulsa para permitir que los usuarios recojan sus 5 créditos (solo si tienen 0).</div>
+            <button onclick="habilitarEntregaCreditos()" style="background:#0ea5e9">HABILITAR ENTREGA DE CRÉDITOS</button>
+        </div>
+
+        <div class="admin-section">
+            <h4>4. Ronda (+1 y +3)</h4>
 
             <div class="admin-grid-2">
                 <div>
@@ -149,6 +188,11 @@
     <div id="game-ui" class="card hidden">
         <img id="display-gif" src="Bilawal.jpeg" class="status-gif">
         <h3 id="user-display"></h3>
+        <div id="wallet-display" class="wallet">💼 0 créditos</div>
+
+        <button id="btn-recoger-creditos" class="hidden" onclick="recogerCreditos()" style="background:#0ea5e9; margin-top:10px;">
+            RECOGER CRÉDITOS (5)
+        </button>
 
         <div id="estado-ronda-box" style="margin-bottom:10px;"></div>
         <div id="countdown-box" class="countdown hidden"></div>
@@ -167,20 +211,21 @@
         <div id="votos-ui">
             <div class="vote-box"><strong>VALE 1 PUNTO:</strong><div id="render-o2"></div></div>
             <div class="vote-box"><strong>VALE 3 PUNTOS:</strong><div id="render-o3"></div></div>
-            <button id="btn-votar" onclick="votar()" class="hidden" style="background:#22c55e">ENVIAR VOTOS</button>
+            <button id="btn-votar" onclick="votar()" class="hidden" style="background:#22c55e">ENVIAR APUESTA</button>
         </div>
 
         <div style="margin-top:20px;">
             <h4>🏆 RANKING</h4>
             <div style="font-size:12px; color:#64748b; margin-top:-4px; margin-bottom:8px;">
-            Jugadores con racha de 2 o más días suman +1 punto extra.
+                Jugadores con racha de 2 o más semanas suman +1 punto extra.
+            </div>
             <div id="ranking-list"></div>
         </div>
     </div>
 
     <script>
         const SB_URL = 'https://hhkplxfousaoyjfpnllo.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoa3BseGZvdXNhb3lqZnBubGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4Njc4NTMsImV4cCI6MjA4NzQ0Mzg1M30.SPbJIeYBRm9yBdIZPXh3HSM88k73McLZIAzfhMZWEj0'; // <- si ya funciona, deja la tuya
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoa3BseGZvdXNhb3lqZnBubGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4Njc4NTMsImV4cCI6MjA4NzQ0Mzg1M30.SPbJIeYBRm9yBdIZPXh3HSM88k73McLZIAzfhMZWEj0';
         const { createClient } = supabase;
         const sb = createClient(SB_URL, SB_KEY);
 
@@ -188,10 +233,13 @@
         let esAdmin = false;
         const IMAGEN_ESTADO = "Bilawal.jpeg";
 
-        // Control para no duplicar intervalos
         let refreshIntervalId = null;
         let countdownIntervalId = null;
         let realtimeChannel = null;
+
+        // Cache para selects admin
+        let __statsCache = [];
+        let __usersCache = [];
 
         // ---------- Helpers ----------
         function escapeHtml(str) {
@@ -212,10 +260,9 @@
 
         function parseCierreLocalToISO(fecha, hora) {
             if (!fecha || !hora) return null;
-            // Construye una fecha local del navegador
             const d = new Date(`${fecha}T${hora}:00`);
             if (isNaN(d.getTime())) return null;
-            return d.toISOString(); // Supabase guarda timestamptz
+            return d.toISOString();
         }
 
         function formatFechaHora(iso) {
@@ -229,29 +276,19 @@
         }
 
         function getEstadoRondaVisual(jg) {
-            // ronda_id: 0 activa / 1 validada (según tu lógica actual)
             const ahora = Date.now();
             const cierreMs = jg?.cierre_votacion ? new Date(jg.cierre_votacion).getTime() : null;
 
-            if (!jg || (!jg.opciones2?.length && !jg.opciones3?.length)) {
-                return { txt: 'Sin ronda activa', cls: '' };
-            }
-
-            if (jg.ronda_id === 1) {
-                return { txt: `Ronda ${jg.ronda_num || 0} finalizada`, cls: 'status-final' };
-            }
-
-            if (cierreMs && ahora >= cierreMs) {
-                return { txt: `Ronda ${jg.ronda_num || 0} cerrada (pendiente validar)`, cls: 'status-closed' };
-            }
-
+            if (!jg || (!jg.opciones2?.length && !jg.opciones3?.length)) return { txt: 'Sin ronda activa', cls: '' };
+            if (jg.ronda_id === 1) return { txt: `Ronda ${jg.ronda_num || 0} finalizada`, cls: 'status-final' };
+            if (cierreMs && ahora >= cierreMs) return { txt: `Ronda ${jg.ronda_num || 0} cerrada (pendiente validar)`, cls: 'status-closed' };
             return { txt: `Ronda ${jg.ronda_num || 0} abierta`, cls: 'status-open' };
         }
 
         function estaVotacionCerrada(jg) {
             if (!jg) return true;
             if (jg.ronda_id === 1) return true;
-            if (!jg.cierre_votacion) return false; // si no se define, se mantiene abierta
+            if (!jg.cierre_votacion) return false;
             return Date.now() >= new Date(jg.cierre_votacion).getTime();
         }
 
@@ -262,7 +299,6 @@
                 box.innerHTML = '';
                 return;
             }
-
             const cierre = new Date(jg.cierre_votacion).getTime();
             const ahora = Date.now();
             const diff = cierre - ahora;
@@ -286,25 +322,18 @@
 
         function startCountdownUpdater() {
             if (countdownIntervalId) clearInterval(countdownIntervalId);
-            countdownIntervalId = setInterval(async () => {
-                // no hacemos query cada segundo, refrescamos visual según última data
-                // el refresco real ya se hace cada 5s y por realtime
+            countdownIntervalId = setInterval(() => {
                 if (window.__lastEstadoJuego) renderCountdown(window.__lastEstadoJuego);
             }, 1000);
         }
 
         function getRankingWithPositions(rk) {
-            // posición real por índice + 1
             return rk.map((j, idx) => ({ ...j, _pos: idx + 1 }));
         }
 
         function getMedalByTies(rk) {
-            // Devuelve mapa nombre->medalla según top 3 por tramos de puntos
-            // Ej: 10,8,8,6 => oro(10), plata(8,8), bronce(6)
             const uniquePoints = [];
-            for (const j of rk) {
-                if (!uniquePoints.includes(j.puntos)) uniquePoints.push(j.puntos);
-            }
+            for (const j of rk) if (!uniquePoints.includes(j.puntos)) uniquePoints.push(j.puntos);
 
             const medalByPoints = {};
             if (uniquePoints.length > 0) medalByPoints[uniquePoints[0]] = '🥇';
@@ -312,9 +341,7 @@
             if (uniquePoints.length > 2) medalByPoints[uniquePoints[2]] = '🥉';
 
             const map = {};
-            for (const j of rk) {
-                map[j.nombre] = medalByPoints[j.puntos] || '';
-            }
+            for (const j of rk) map[j.nombre] = medalByPoints[j.puntos] || '';
             return map;
         }
 
@@ -332,7 +359,6 @@
             let prevMap = {};
             try { prevMap = JSON.parse(localStorage.getItem(keyPrev) || '{}'); } catch { prevMap = {}; }
 
-            // Si cambia el ranking (nombre/orden/puntos), movemos curr -> prev y guardamos curr nuevo
             if (storedSig !== currentSig) {
                 let oldCurr = {};
                 try { oldCurr = JSON.parse(localStorage.getItem(keyCurr) || '{}'); } catch { oldCurr = {}; }
@@ -371,11 +397,9 @@
 
             list.innerHTML = conPos.map(j => {
                 const medal = medalMap[j.nombre] || '';
-                const arrow = arrowMap[j.nombre] || { txt: '•', cls: 'arrow-same', flash: '' };
-                const streakBadge = (j.racha_actual >= 1)
-                ? `<span class="badge-streak">🔥 ${j.racha_actual}</span>`
-                : '';
-            
+                const arrow = arrowMap[j.nombre] || { txt: '', cls: 'arrow-same', flash: '' };
+                const streakBadge = (j.racha_actual >= 1) ? `<span class="badge-streak">🔥 ${j.racha_actual}</span>` : '';
+
                 return `
                     <div class="ranking-row ${arrow.flash}">
                         <div class="ranking-left">
@@ -386,7 +410,7 @@
                                     ${streakBadge}
                                 </div>
                                 <div class="ranking-meta">
-                                    <span class="${arrow.cls}">${arrow.txt}</span>
+                                    ${arrow.txt ? `<span class="${arrow.cls}">${arrow.txt}</span>` : ``}
                                 </div>
                             </div>
                         </div>
@@ -394,6 +418,112 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function actualizarSelectsAdmin() {
+            if (!esAdmin) return;
+
+            // Players (estadisticas)
+            const selP = document.getElementById('adm-select-player');
+            const currentP = selP.value;
+            selP.innerHTML = `<option value="">(Nuevo jugador)</option>` + __statsCache
+                .map(s => `<option value="${escapeHtml(s.sujeto)}">${escapeHtml(s.sujeto)}</option>`).join('');
+            selP.value = currentP || '';
+
+            // Users (jugadores)
+            const selU = document.getElementById('adm-select-user');
+            const currentU = selU.value;
+            selU.innerHTML = `<option value="">(Selecciona un usuario)</option>` + __usersCache
+                .map(u => `<option value="${escapeHtml(u.nombre)}">@${escapeHtml(u.nombre)}</option>`).join('');
+            selU.value = currentU || '';
+        }
+
+        // ---------- Admin dropdown handlers ----------
+        function cargarPlayerSeleccionado() {
+            const sujeto = document.getElementById('adm-select-player').value;
+            if (!sujeto) {
+                document.getElementById('info-sujeto').value = "";
+                document.getElementById('info-goles').value = "";
+                document.getElementById('info-am').value = "";
+                document.getElementById('info-ro').value = "";
+                return;
+            }
+            const row = __statsCache.find(x => x.sujeto === sujeto);
+            if (!row) return;
+            document.getElementById('info-sujeto').value = row.sujeto || "";
+            document.getElementById('info-goles').value = row.dato1 || "";
+            document.getElementById('info-am').value = row.dato2 ?? 0;
+            document.getElementById('info-ro').value = row.dato3 ?? 0;
+        }
+
+        function cargarUserSeleccionado() {
+            const nom = document.getElementById('adm-select-user').value;
+            const u = __usersCache.find(x => x.nombre === nom);
+            if (!u) {
+                document.getElementById('adm-user-points').value = "";
+                document.getElementById('adm-user-credits').value = "";
+                return;
+            }
+            document.getElementById('adm-user-points').value = u.puntos ?? 0;
+            document.getElementById('adm-user-credits').value = u.creditos ?? 0;
+        }
+
+        async function eliminarJugadorSeleccionado() {
+            const sujeto = document.getElementById('adm-select-player').value;
+            if (!sujeto) return alert("Selecciona un jugador.");
+            if (!confirm(`¿Eliminar al jugador "${sujeto}" de la tabla de apoyo?`)) return;
+
+            const { error } = await sb.from('estadisticas').delete().eq('sujeto', sujeto);
+            if (error) {
+                console.error(error);
+                return alert("Error eliminando jugador.");
+            }
+            alert("Jugador eliminado ✅");
+            document.getElementById('adm-select-player').value = "";
+            cargarPlayerSeleccionado();
+            refrescar();
+        }
+
+        async function eliminarUsuarioSeleccionado() {
+            const nom = document.getElementById('adm-select-user').value;
+            if (!nom) return alert("Selecciona un usuario.");
+            if (!confirm(`¿Eliminar al usuario "@${nom}" del sistema?`)) return;
+
+            const { error } = await sb.from('jugadores').delete().eq('nombre', nom);
+            if (error) {
+                console.error(error);
+                return alert("Error eliminando usuario.");
+            }
+            alert("Usuario eliminado ✅");
+            document.getElementById('adm-select-user').value = "";
+            cargarUserSeleccionado();
+            refrescar();
+        }
+
+        async function actualizarPuntosUsuario() {
+            const nom = document.getElementById('adm-select-user').value;
+            if (!nom) return alert("Selecciona un usuario.");
+
+            const val = parseInt(document.getElementById('adm-user-points').value, 10);
+            if (Number.isNaN(val)) return alert("Introduce un número válido.");
+
+            const { error } = await sb.from('jugadores').update({ puntos: val }).eq('nombre', nom);
+            if (error) {
+                console.error(error);
+                return alert("Error actualizando puntos.");
+            }
+            alert("Puntos actualizados ✅");
+            refrescar();
+        }
+
+        async function habilitarEntregaCreditos() {
+            const { error } = await sb.from('estado_juego').update({ creditos_habilitados: true }).eq('id', 1);
+            if (error) {
+                console.error(error);
+                return alert("Error habilitando entrega de créditos.");
+            }
+            alert("Entrega de créditos habilitada ✅");
+            refrescar();
         }
 
         // ---------- App ----------
@@ -420,7 +550,6 @@
                 document.getElementById('admin-ui').classList.remove('hidden');
                 document.getElementById('game-ui').classList.remove('hidden');
 
-                // Autorrellenar fecha/hora por comodidad (hoy + 1h)
                 const now = new Date();
                 now.setHours(now.getHours() + 1);
                 const yyyy = now.getFullYear();
@@ -444,23 +573,42 @@
             const r = document.getElementById('info-ro').value || 0;
             if(!s) return alert("Nombre obligatorio");
 
-            const { error } = await sb.from('estadisticas').upsert({ sujeto: s, dato1: g, dato2: a, dato3: r }, { onConflict: 'sujeto' });
+            const { error } = await sb.from('estadisticas').upsert(
+                { sujeto: s, dato1: g, dato2: a, dato3: r },
+                { onConflict: 'sujeto' }
+            );
             if (error) {
                 console.error(error);
-                return alert("Error guardando fila");
+                return alert("Error guardando jugador.");
             }
 
-            document.getElementById('info-sujeto').value = "";
+            alert("Guardado ✅");
+            document.getElementById('adm-select-player').value = s;
+            refrescar();
         }
 
-        async function eliminarFila(sujeto) {
-            if(confirm("¿Eliminar permanentemente a " + sujeto + "?")) {
-                const { error } = await sb.from('estadisticas').delete().eq('sujeto', sujeto);
-                if (error) {
-                    console.error(error);
-                    alert("Error al eliminar");
-                }
+        async function recogerCreditos() {
+            const { data: yo, error: eYo } = await sb.from('jugadores').select('*').eq('nombre', miNombre).single();
+            if (eYo) {
+                console.error(eYo);
+                return alert("Error leyendo tu usuario.");
             }
+            if ((yo?.creditos ?? 0) > 0) return alert("Ya tienes créditos. Primero gástalos.");
+
+            const { data: jg, error: eJg } = await sb.from('estado_juego').select('creditos_habilitados').eq('id',1).single();
+            if (eJg) {
+                console.error(eJg);
+                return alert("Error comprobando entrega de créditos.");
+            }
+            if (!jg?.creditos_habilitados) return alert("La entrega de créditos no está habilitada.");
+
+            const { error } = await sb.from('jugadores').update({ creditos: 5 }).eq('nombre', miNombre);
+            if (error) {
+                console.error(error);
+                return alert("Error recogiendo créditos.");
+            }
+            alert("Has recogido 5 créditos ✅");
+            refrescar();
         }
 
         async function refrescar() {
@@ -471,35 +619,15 @@
                 miNombre ? sb.from('jugadores').select('*').eq('nombre', miNombre).single() : Promise.resolve({ data: null, error: null })
             ]);
 
-            if (e1 || e2 || e3 || e4) {
-                console.error("Errores refrescar:", e1, e2, e3, e4);
-                // Evita romper toda la app
-            }
+            if (e1 || e2 || e3 || e4) console.error("Errores refrescar:", e1, e2, e3, e4);
 
             window.__lastEstadoJuego = jg || null;
 
-            if(esAdmin) {
-                document.getElementById('adm-list-stats').innerHTML = (st || []).map(s =>
-                    `<tr>
-                        <td>${escapeHtml(s.sujeto)}</td>
-                        <td>
-                            <button onclick="editEst('${escapeHtml(s.sujeto)}','${escapeHtml(s.dato1)}',${Number(s.dato2)||0},${Number(s.dato3)||0})">✎</button>
-                            <button class="btn-del" onclick="eliminarFila('${escapeHtml(s.sujeto)}')">X</button>
-                        </td>
-                    </tr>`
-                ).join('');
+            __statsCache = st || [];
+            __usersCache = rk || [];
+            actualizarSelectsAdmin();
 
-                document.getElementById('adm-list-ranking').innerHTML = (rk || []).map(j =>
-                    `<tr>
-                        <td>@${escapeHtml(j.nombre)}</td>
-                        <td>${j.puntos}</td>
-                        <td>🔥 ${j.racha_actual || 0}</td>
-                        <td><button onclick="editPts('${escapeHtml(j.nombre)}',${j.puntos})">✎</button></td>
-                    </tr>`
-                ).join('');
-            }
-
-            document.getElementById('info-content-user').innerHTML = (st || []).map(s =>
+            document.getElementById('info-content-user').innerHTML = (__statsCache || []).map(s =>
                 `<tr>
                     <td><b>${escapeHtml(s.sujeto)}</b></td>
                     <td>${escapeHtml(s.dato1)}</td>
@@ -507,6 +635,16 @@
                     <td><span class="ro">${escapeHtml(s.dato3)}</span></td>
                 </tr>`
             ).join('');
+
+            // Wallet + botón recoger créditos
+            const wallet = document.getElementById('wallet-display');
+            const btnCred = document.getElementById('btn-recoger-creditos');
+            const myCredits = yo?.creditos ?? 0;
+            wallet.textContent = `💼 ${myCredits} créditos`;
+
+            const creditosHabilitados = !!jg?.creditos_habilitados;
+            if (creditosHabilitados && myCredits === 0) btnCred.classList.remove('hidden');
+            else btnCred.classList.add('hidden');
 
             const gif = document.getElementById('display-gif');
             const r2 = document.getElementById('render-o2');
@@ -516,44 +654,29 @@
 
             gif.src = IMAGEN_ESTADO;
 
-            // Estado visual ronda
             const ev = getEstadoRondaVisual(jg || {});
             estadoBox.innerHTML = `<span class="status-pill ${ev.cls}">${ev.txt}</span>`;
             renderCountdown(jg || {});
 
             if (jg) {
                 if (jg.ronda_id === 1) {
-                    const wins2 = jg.correcta2 ? jg.correcta2.split(',').map(s => s.trim().toLowerCase()) : [];
-                    const wins3 = jg.correcta3 ? jg.correcta3.split(',').map(s => s.trim().toLowerCase()) : [];
-                    const acierto = wins2.includes(yo?.seleccion2?.toLowerCase()) || wins3.includes(yo?.seleccion3?.toLowerCase());
-
-                    gif.src = IMAGEN_ESTADO;
                     r2.innerHTML = `Ganadores (+1): <b>${escapeHtml(jg.correcta2 || '-')}</b>`;
                     r3.innerHTML = `Ganadores (+3): <b>${escapeHtml(jg.correcta3 || '-')}</b>`;
-
-                    if (acierto && (yo?.racha_actual >= 2)) {
-                        r3.innerHTML += `<br><span class="badge-streak">🔥 ¡Racha activa x${yo.racha_actual}!</span>`;
-                    }
-
                     btn.classList.add('hidden');
-                } else if (jg.opciones2?.length > 0 || jg.opciones3?.length > 0) {
+                } else if ((jg.opciones2?.length > 0 || jg.opciones3?.length > 0)) {
                     const cerrada = estaVotacionCerrada(jg);
 
                     if (!yo?.seleccion2 && !cerrada) {
-                        const yaMarcado = document.querySelector('input[name="c2"]:checked');
-                        if (!yaMarcado) {
-                            gif.src = IMAGEN_ESTADO;
-                            btn.classList.remove('hidden');
-                            r2.innerHTML = (jg.opciones2 || []).map(o => `<label><input type="radio" name="c2" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
-                            r3.innerHTML = (jg.opciones3 || []).map(o => `<label><input type="radio" name="c3" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
-                        }
+                        btn.classList.remove('hidden');
+                        r2.innerHTML = (jg.opciones2 || []).map(o => `<label><input type="radio" name="c2" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
+                        r3.innerHTML = (jg.opciones3 || []).map(o => `<label><input type="radio" name="c3" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
                     } else if (!yo?.seleccion2 && cerrada) {
                         r2.innerHTML = `⛔ Votación cerrada (${formatFechaHora(jg.cierre_votacion)})`;
                         r3.innerHTML = `Esperando validación del admin...`;
                         btn.classList.add('hidden');
                     } else {
-                        r2.innerHTML = "Voto enviado ✅";
-                        r3.innerHTML = "Voto enviado ✅";
+                        r2.innerHTML = `Apuesta enviada ✅ (1pto: ${yo?.apuesta2 ?? 0} / 3ptos: ${yo?.apuesta3 ?? 0})`;
+                        r3.innerHTML = `Créditos restantes: ${yo?.creditos ?? 0}`;
                         btn.classList.add('hidden');
                     }
                 } else {
@@ -569,23 +692,15 @@
         async function lanzar() {
             const o2 = splitOpciones(document.getElementById('adm-o2').value);
             const o3 = splitOpciones(document.getElementById('adm-o3').value);
-
             if (o2.length === 0 && o3.length === 0) return alert("Añade opciones para la ronda.");
 
             const fechaCierre = document.getElementById('adm-cierre-fecha').value;
             const horaCierre = document.getElementById('adm-cierre-hora').value;
             const cierreISO = parseCierreLocalToISO(fechaCierre, horaCierre);
+            if (!cierreISO) return alert("Debes indicar fecha y hora de cierre válidas.");
 
-            if (!cierreISO) {
-                return alert("Debes indicar fecha y hora de cierre válidas.");
-            }
-
-            // Leemos ronda actual para incrementarla
             const { data: estadoActual, error: eGet } = await sb.from('estado_juego').select('ronda_num').eq('id', 1).single();
-            if (eGet) {
-                console.error(eGet);
-                return alert("Error leyendo estado actual.");
-            }
+            if (eGet) { console.error(eGet); return alert("Error leyendo estado actual."); }
 
             const nuevaRondaNum = (estadoActual?.ronda_num || 0) + 1;
 
@@ -595,24 +710,26 @@
                     opciones3: o3,
                     correcta2: null,
                     correcta3: null,
-                    ronda_id: 0, // activa
+                    ronda_id: 0,
                     ronda_num: nuevaRondaNum,
-                    cierre_votacion: cierreISO
+                    cierre_votacion: cierreISO,
+                    creditos_habilitados: false   // <- IMPORTANTÍSIMO: admin decide cuándo habilitar
                 })
                 .eq('id', 1);
 
-            if (e1) {
-                console.error(e1);
-                return alert("Error activando ronda.");
-            }
+            if (e1) { console.error(e1); return alert("Error activando ronda."); }
 
-            const { error: e2 } = await sb.from('jugadores').update({ seleccion2: null, seleccion3: null }).neq('nombre','');
-            if (e2) {
-                console.error(e2);
-                return alert("Ronda creada, pero error al limpiar selecciones.");
-            }
+            // limpiamos selecciones + apuestas (pero NO tocamos créditos)
+            const { error: e2 } = await sb.from('jugadores').update({
+                seleccion2: null,
+                seleccion3: null,
+                apuesta2: 0,
+                apuesta3: 0
+            }).neq('nombre','');
 
-            alert(`Ronda ${nuevaRondaNum} iniciada.\nCierre: ${formatFechaHora(cierreISO)}`);
+            if (e2) { console.error(e2); return alert("Ronda creada, pero error al limpiar selecciones."); }
+
+            alert(`Ronda ${nuevaRondaNum} iniciada.\nCierre: ${formatFechaHora(cierreISO)}\nRecuerda habilitar créditos si quieres.`);
         }
 
         async function votar() {
@@ -620,31 +737,50 @@
             const v3 = document.querySelector('input[name="c3"]:checked')?.value;
             if(!v2 || !v3) return alert("Elige ambas opciones");
 
-            // Revisa cierre antes de votar
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('*').eq('id', 1).single();
-            if (eJg) {
-                console.error(eJg);
-                return alert("Error comprobando estado de la ronda.");
+            if (eJg) { console.error(eJg); return alert("Error comprobando estado de la ronda."); }
+            if (estaVotacionCerrada(jg)) return alert("La votación está cerrada.");
+
+            const { data: yo, error: eYo } = await sb.from('jugadores').select('*').eq('nombre', miNombre).single();
+            if (eYo) { console.error(eYo); return alert("Error leyendo tu usuario."); }
+
+            const credits = yo?.creditos ?? 0;
+            if (credits === 0) {
+                return alert("No tienes créditos. Si el admin habilitó la entrega, pulsa 'Recoger créditos'.");
+            }
+            if (credits !== 5) {
+                // si por alguna razón no es 5, forzamos regla del sistema
+                return alert("Tus créditos deben ser 5 para apostar esta semana. (Vuelve a recoger cuando tengas 0).");
             }
 
-            if (estaVotacionCerrada(jg)) {
-                return alert("La votación está cerrada.");
-            }
+            let bet1 = prompt("¿Cuántos créditos apuestas al pronóstico de 1 punto? (mín 1, máx 4)");
+            if (bet1 === null) return;
+            bet1 = parseInt(bet1, 10);
+            if (Number.isNaN(bet1) || bet1 < 1 || bet1 > 4) return alert("Debe ser un número entre 1 y 4.");
 
-            const { error } = await sb.from('jugadores').update({ seleccion2: v2, seleccion3: v3 }).eq('nombre', miNombre);
+            const bet3 = 5 - bet1; // siempre 1..4
+            if (bet3 < 1 || bet3 > 4) return alert("La apuesta al pronóstico de 3 puntos debe quedar entre 1 y 4.");
+
+            const ok = confirm(`Confirmar apuesta:\n- 1 punto: ${bet1} créditos\n- 3 puntos: ${bet3} créditos\nTotal: 5`);
+            if (!ok) return;
+
+            const { error } = await sb.from('jugadores').update({
+                seleccion2: v2,
+                seleccion3: v3,
+                apuesta2: bet1,
+                apuesta3: bet3,
+                creditos: 0
+            }).eq('nombre', miNombre);
+
             if (error) {
                 console.error(error);
-                return alert("Error al enviar voto.");
+                return alert("Error al enviar apuesta.");
             }
         }
 
         async function puntuar() {
-            // Opcional: avisar si no está cerrada aún
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('*').eq('id', 1).single();
-            if (eJg) {
-                console.error(eJg);
-                return alert("Error leyendo estado de ronda.");
-            }
+            if (eJg) { console.error(eJg); return alert("Error leyendo estado de ronda."); }
 
             if (jg && jg.cierre_votacion && Date.now() < new Date(jg.cierre_votacion).getTime()) {
                 const seguir = confirm("La votación todavía está abierta. ¿Quieres validar igualmente?");
@@ -656,11 +792,11 @@
 
             const { error } = await sb.rpc('validar_y_puntuar', { c2: w2, c3: w3 });
             if (error) {
-            console.error("RPC validar_y_puntuar error:", error);
-            return alert(`Error validando ganadores: ${error.message}`);
+                console.error("RPC validar_y_puntuar error:", error);
+                return alert(`Error validando ganadores: ${error.message}`);
             }
 
-            alert("Puntos asignados y rachas actualizadas ✅");
+            alert("Puntos asignados (con apuestas) y rachas actualizadas ✅");
         }
 
         function iniciar() {
@@ -669,33 +805,9 @@
                     .on('postgres_changes', { event: '*', schema: 'public' }, () => refrescar())
                     .subscribe();
             }
-
-            if (!refreshIntervalId) {
-                refreshIntervalId = setInterval(refrescar, 5000);
-            }
-
+            if (!refreshIntervalId) refreshIntervalId = setInterval(refrescar, 5000);
             startCountdownUpdater();
             refrescar();
-        }
-
-        function editEst(s, g, a, r) {
-            document.getElementById('info-sujeto').value = s;
-            document.getElementById('info-goles').value = g;
-            document.getElementById('info-am').value = a;
-            document.getElementById('info-ro').value = r;
-        }
-
-        async function editPts(nom, pts) {
-            const n = prompt(`Puntos para @${nom}:`, pts);
-            if(n === null) return;
-            const val = parseInt(n, 10);
-            if (Number.isNaN(val)) return alert("Introduce un número válido.");
-
-            const { error } = await sb.from('jugadores').update({ puntos: val }).eq('nombre', nom);
-            if (error) {
-                console.error(error);
-                alert("Error actualizando puntos.");
-            }
         }
     </script>
 </body>
