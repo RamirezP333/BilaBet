@@ -556,16 +556,22 @@
         }
 
         async function entrar() {
-            miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
-            if(!miNombre) return;
-
-            const { error } = await sb.from('jugadores').upsert({ nombre: miNombre }, { onConflict: 'nombre' });
-            if (error) { console.error(error); return alert("Error al entrar. Revisa Supabase (RLS/policies)."); }
-
-            document.getElementById('auth-ui').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            document.getElementById('user-display').innerText = "@" + miNombre;
-            iniciar();
+          miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
+          if(!miNombre) return;
+        
+          const { error } = await sb.from('jugadores')
+            .upsert({ nombre: miNombre }, { onConflict: 'nombre' });
+        
+          if (error) {
+            console.error("Error entrar:", error);
+            alert(`Error al entrar:\n${error.message || error}\n\nCode: ${error.code || ''}`);
+            return;
+          }
+        
+          document.getElementById('auth-ui').classList.add('hidden');
+          document.getElementById('game-ui').classList.remove('hidden');
+          document.getElementById('user-display').innerText = "@" + miNombre;
+          iniciar();
         }
 
         function accesoAdmin() {
