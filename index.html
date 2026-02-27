@@ -556,20 +556,26 @@
         }
 
         async function entrar() {
-            miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
-            if(!miNombre) return;
-
-            const { error } = await sb.from('jugadores').upsert({ nombre: miNombre }, { onConflict: 'nombre' });
-            if (error) { console.error(error); return alert("Error al entrar. Revisa Supabase (RLS/policies)."); }
-
-            document.getElementById('auth-ui').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            document.getElementById('user-display').innerText = "@" + miNombre;
-            iniciar();
+          miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
+          if(!miNombre) return;
+        
+          const { error } = await sb.from('jugadores')
+            .upsert({ nombre: miNombre }, { onConflict: 'nombre' });
+        
+          if (error) {
+            console.error("Error entrar:", error);
+            alert(`Error al entrar:\n${error.message || error}\n\nCode: ${error.code || ''}`);
+            return;
+          }
+        
+          document.getElementById('auth-ui').classList.add('hidden');
+          document.getElementById('game-ui').classList.remove('hidden');
+          document.getElementById('user-display').innerText = "@" + miNombre;
+          iniciar();
         }
 
         function accesoAdmin() {
-            if(prompt("Clave:") === "TrustTheBlan") {
+            if(prompt("Clave:") === "trusttheblan") {
                 esAdmin = true;
                 document.getElementById('auth-ui').classList.add('hidden');
                 document.getElementById('admin-ui').classList.remove('hidden');
@@ -612,18 +618,24 @@
         async function recogerCreditos() {
             const { data: yo, error: eYo } = await sb.from('jugadores').select('*').eq('nombre', miNombre).single();
             if (eYo) { console.error(eYo); return alert("Error leyendo tu usuario."); }
+        
             if ((yo?.creditos ?? 0) > 0) return alert("Ya tienes créditos. Primero gástalos.");
-
+        
+            // ✅ NUEVO: si ya apostó, no puede recoger
+            if (yo?.seleccion2 || yo?.seleccion3) {
+                return alert("Ya has enviado tu apuesta esta semana. No puedes recoger créditos ahora.");
+            }
+        
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('creditos_habilitados').eq('id',1).single();
             if (eJg) { console.error(eJg); return alert("Error comprobando entrega de créditos."); }
             if (!jg?.creditos_habilitados) return alert("La entrega de créditos no está habilitada.");
-
+        
             const racha = yo?.racha_actual ?? 0;
             const cantidad = (racha >= 2) ? 6 : 5;
-
+        
             const { error } = await sb.from('jugadores').update({ creditos: cantidad }).eq('nombre', miNombre);
             if (error) { console.error(error); return alert("Error recogiendo créditos."); }
-
+        
             alert(`Has recogido ${cantidad} créditos ✅`);
             refrescar();
         }
@@ -663,8 +675,13 @@
             wallet.textContent = `💼 ${myCredits} créditos`;
 
             const creditosHabilitados = !!jg?.creditos_habilitados;
-            if (creditosHabilitados && myCredits === 0) btnCred.classList.remove('hidden');
-            else btnCred.classList.add('hidden');
+            const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
+            
+            if (creditosHabilitados && myCredits === 0 && noHaApostado) {
+                btnCred.classList.remove('hidden');
+            } else {
+                btnCred.classList.add('hidden');
+            }
 
             const gif = document.getElementById('display-gif');
             const r2 = document.getElementById('render-o2');
@@ -741,7 +758,6 @@
                     ronda_id: 0,
                     ronda_num: nuevaRondaNum,
                     cierre_votacion: cierreISO,
-                    creditos_habilitados: false
                 })
                 .eq('id', 1);
 
@@ -821,6 +837,11 @@
                 console.error("RPC validar_y_puntuar error:", error);
                 return alert(`Error validando ganadores: ${error.message}`);
             }
+            const { error: eCut } = await sb.from('estado_juego')
+            .update({ creditos_habilitados: false })
+            .eq('id', 1);
+        
+            if (eCut) console.error("Error deshabilitando créditos:", eCut);
 
             alert("Ganadores validados ✅ (puntos por apuestas + racha actualizada)");
         }
