@@ -111,6 +111,32 @@
         }
         .check-item:last-child { border-bottom: none; }
         .check-item input { width:auto; margin:0; transform: scale(1.1); }
+
+        /* ✅ NUEVO: opciones de voto bonitas y alineadas en móvil */
+        .pick-item{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:10px 8px;
+            border-radius:10px;
+            border:1px solid #e2e8f0;
+            background:#ffffff;
+            margin:8px 0;
+            cursor:pointer;
+            user-select:none;
+        }
+        .pick-item input{
+            width:auto;
+            margin:0;
+            transform: scale(1.15);
+            flex: 0 0 auto;
+        }
+        .pick-text{
+            flex:1;
+            min-width:0;
+            line-height:1.2;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -273,33 +299,26 @@
         function bumpUserSelecting() {
           userIsSelecting = true;
           if (__userSelectTimer) clearTimeout(__userSelectTimer);
-          __userSelectTimer = setTimeout(() => { userIsSelecting = false; }, 60000); // 1 minuto
+          __userSelectTimer = setTimeout(() => { userIsSelecting = false; }, 60000);
         }
-
         function bumpAdminSelecting() {
           adminIsSelecting = true;
           if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
-          __adminSelectTimer = setTimeout(() => { adminIsSelecting = false; }, 60000); // 1 minuto
+          __adminSelectTimer = setTimeout(() => { adminIsSelecting = false; }, 60000);
         }
-
         function setupSelectionGuards() {
           const votosUI = document.getElementById('votos-ui');
           if (votosUI && !votosUI.__guardsAttached) {
             votosUI.__guardsAttached = true;
             votosUI.addEventListener('change', (e) => {
-              if (e.target && (e.target.name === 'c2' || e.target.name === 'c3')) {
-                bumpUserSelecting();
-              }
+              if (e.target && (e.target.name === 'c2' || e.target.name === 'c3')) bumpUserSelecting();
             });
           }
-
           const adminUI = document.getElementById('admin-ui');
           if (adminUI && !adminUI.__guardsAttached) {
             adminUI.__guardsAttached = true;
             adminUI.addEventListener('change', (e) => {
-              if (e.target && (e.target.name === 'admwin2' || e.target.name === 'admwin3')) {
-                bumpAdminSelecting();
-              }
+              if (e.target && (e.target.name === 'admwin2' || e.target.name === 'admwin3')) bumpAdminSelecting();
             });
           }
         }
@@ -660,10 +679,7 @@
             if (eYo) { console.error(eYo); return alert("Error leyendo tu usuario."); }
 
             if ((yo?.creditos ?? 0) > 0) return alert("Ya tienes créditos. Primero gástalos.");
-
-            if (yo?.seleccion2 || yo?.seleccion3) {
-                return alert("Ya has enviado tu apuesta esta semana. No puedes recoger créditos ahora.");
-            }
+            if (yo?.seleccion2 || yo?.seleccion3) return alert("Ya has enviado tu apuesta esta semana. No puedes recoger créditos ahora.");
 
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('creditos_habilitados').eq('id',1).single();
             if (eJg) { console.error(eJg); return alert("Error comprobando entrega de créditos."); }
@@ -695,10 +711,7 @@
             __usersCache = rk || [];
             actualizarSelectsAdmin();
 
-            // Admin: NO re-renderizar si está seleccionando (1 minuto)
-            if (!adminIsSelecting) {
-                renderAdminValidacion(jg || null);
-            }
+            if (!adminIsSelecting) renderAdminValidacion(jg || null);
 
             document.getElementById('info-content-user').innerHTML = (__statsCache || []).map(s =>
                 `<tr>
@@ -709,7 +722,6 @@
                 </tr>`
             ).join('');
 
-            // Wallet + botón recoger créditos
             const wallet = document.getElementById('wallet-display');
             const btnCred = document.getElementById('btn-recoger-creditos');
             const myCredits = yo?.creditos ?? 0;
@@ -718,19 +730,13 @@
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
 
-            if (creditosHabilitados && myCredits === 0 && noHaApostado) {
-                btnCred.classList.remove('hidden');
-            } else {
-                btnCred.classList.add('hidden');
-            }
+            if (creditosHabilitados && myCredits === 0 && noHaApostado) btnCred.classList.remove('hidden');
+            else btnCred.classList.add('hidden');
 
-            const gif = document.getElementById('display-gif');
             const r2 = document.getElementById('render-o2');
             const r3 = document.getElementById('render-o3');
             const btn = document.getElementById('btn-votar');
             const estadoBox = document.getElementById('estado-ronda-box');
-
-            gif.src = IMAGEN_ESTADO;
 
             const ev = getEstadoRondaVisual(jg || {});
             estadoBox.innerHTML = `<span class="status-pill ${ev.cls}">${ev.txt}</span>`;
@@ -747,10 +753,20 @@
                     if (!yo?.seleccion2 && !cerrada) {
                         btn.classList.remove('hidden');
 
-                        // Usuario: NO re-renderizar radios si está seleccionando (1 minuto)
                         if (!userIsSelecting) {
-                            r2.innerHTML = (jg.opciones2 || []).map(o => `<label><input type="radio" name="c2" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
-                            r3.innerHTML = (jg.opciones3 || []).map(o => `<label><input type="radio" name="c3" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
+                            r2.innerHTML = (jg.opciones2 || []).map(o =>
+                                `<label class="pick-item">
+                                    <input type="radio" name="c2" value="${escapeHtml(o)}">
+                                    <span class="pick-text">${escapeHtml(o)}</span>
+                                 </label>`
+                            ).join('');
+
+                            r3.innerHTML = (jg.opciones3 || []).map(o =>
+                                `<label class="pick-item">
+                                    <input type="radio" name="c3" value="${escapeHtml(o)}">
+                                    <span class="pick-text">${escapeHtml(o)}</span>
+                                 </label>`
+                            ).join('');
                         }
                     } else if (!yo?.seleccion2 && cerrada) {
                         r2.innerHTML = `⛔ Votación cerrada (${formatFechaHora(jg.cierre_votacion)})`;
@@ -759,17 +775,21 @@
                     } else {
                         const b2 = yo?.apuesta2 ?? 0;
                         const b3 = yo?.apuesta3 ?? 0;
+                        const sel2 = yo?.seleccion2 ?? '-';
+                        const sel3 = yo?.seleccion3 ?? '-';
 
                         r2.innerHTML = `✅ Apuesta enviada<br>
+                                        Tu elección: <b>${escapeHtml(sel2)}</b><br>
                                         Créditos apostados: <b>${b2}</b><br>
                                         Ganancia potencial: <b>${b2 * 1}</b> pts`;
+
                         r3.innerHTML = `✅ Apuesta enviada<br>
+                                        Tu elección: <b>${escapeHtml(sel3)}</b><br>
                                         Créditos apostados: <b>${b3}</b><br>
                                         Ganancia potencial: <b>${b3 * 3}</b> pts`;
 
                         btn.classList.add('hidden');
 
-                        // Ya no está seleccionando
                         userIsSelecting = false;
                         if (__userSelectTimer) clearTimeout(__userSelectTimer);
                     }
@@ -821,7 +841,6 @@
 
             if (e2) { console.error(e2); return alert("Ronda creada, pero error al limpiar selecciones."); }
 
-            // reset guards
             userIsSelecting = false;
             adminIsSelecting = false;
             if (__userSelectTimer) clearTimeout(__userSelectTimer);
@@ -843,12 +862,8 @@
             if (eYo) { console.error(eYo); return alert("Error leyendo tu usuario."); }
 
             const credits = yo?.creditos ?? 0;
-            if (credits === 0) {
-                return alert("No tienes créditos. Si el admin habilitó la entrega, pulsa 'Recoger créditos'.");
-            }
-            if (credits !== 5 && credits !== 6) {
-                return alert("Tus créditos deben ser 5 o 6 para apostar esta semana.");
-            }
+            if (credits === 0) return alert("No tienes créditos. Si el admin habilitó la entrega, pulsa 'Recoger créditos'.");
+            if (credits !== 5 && credits !== 6) return alert("Tus créditos deben ser 5 o 6 para apostar esta semana.");
 
             const total = credits;
             let bet1 = prompt(`¿Cuántos créditos apuestas al pronóstico de 1 punto? (mín 1, máx ${total - 1})`);
@@ -872,7 +887,6 @@
 
             if (error) { console.error(error); return alert("Error al enviar apuesta."); }
 
-            // reset user guard immediately
             userIsSelecting = false;
             if (__userSelectTimer) clearTimeout(__userSelectTimer);
         }
@@ -900,7 +914,6 @@
               .eq('id', 1);
             if (eCut) console.error("Error deshabilitando créditos:", eCut);
 
-            // reset admin guard immediately
             adminIsSelecting = false;
             if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
 
