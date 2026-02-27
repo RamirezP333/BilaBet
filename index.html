@@ -264,6 +264,46 @@
         let __statsCache = [];
         let __usersCache = [];
 
+        // --- Anti-desmarcado (1 minuto) ---
+        let userIsSelecting = false;
+        let adminIsSelecting = false;
+        let __userSelectTimer = null;
+        let __adminSelectTimer = null;
+
+        function bumpUserSelecting() {
+          userIsSelecting = true;
+          if (__userSelectTimer) clearTimeout(__userSelectTimer);
+          __userSelectTimer = setTimeout(() => { userIsSelecting = false; }, 60000); // 1 minuto
+        }
+
+        function bumpAdminSelecting() {
+          adminIsSelecting = true;
+          if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
+          __adminSelectTimer = setTimeout(() => { adminIsSelecting = false; }, 60000); // 1 minuto
+        }
+
+        function setupSelectionGuards() {
+          const votosUI = document.getElementById('votos-ui');
+          if (votosUI && !votosUI.__guardsAttached) {
+            votosUI.__guardsAttached = true;
+            votosUI.addEventListener('change', (e) => {
+              if (e.target && (e.target.name === 'c2' || e.target.name === 'c3')) {
+                bumpUserSelecting();
+              }
+            });
+          }
+
+          const adminUI = document.getElementById('admin-ui');
+          if (adminUI && !adminUI.__guardsAttached) {
+            adminUI.__guardsAttached = true;
+            adminUI.addEventListener('change', (e) => {
+              if (e.target && (e.target.name === 'admwin2' || e.target.name === 'admwin3')) {
+                bumpAdminSelecting();
+              }
+            });
+          }
+        }
+
         function escapeHtml(str) {
             return String(str ?? "")
                 .replace(/&/g, "&amp;")
@@ -540,14 +580,14 @@
                 return;
             }
 
-            box2.innerHTML = (jg.opciones2 || []).map((o, idx) => `
+            box2.innerHTML = (jg.opciones2 || []).map((o) => `
                 <label class="check-item">
                     <input type="checkbox" name="admwin2" value="${escapeHtml(o)}">
                     <span>${escapeHtml(o)}</span>
                 </label>
             `).join('') || `<div style="font-size:12px; color:#64748b;">Sin opciones.</div>`;
 
-            box3.innerHTML = (jg.opciones3 || []).map((o, idx) => `
+            box3.innerHTML = (jg.opciones3 || []).map((o) => `
                 <label class="check-item">
                     <input type="checkbox" name="admwin3" value="${escapeHtml(o)}">
                     <span>${escapeHtml(o)}</span>
@@ -558,16 +598,16 @@
         async function entrar() {
           miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
           if(!miNombre) return;
-        
+
           const { error } = await sb.from('jugadores')
             .upsert({ nombre: miNombre }, { onConflict: 'nombre' });
-        
+
           if (error) {
             console.error("Error entrar:", error);
             alert(`Error al entrar:\n${error.message || error}\n\nCode: ${error.code || ''}`);
             return;
           }
-        
+
           document.getElementById('auth-ui').classList.add('hidden');
           document.getElementById('game-ui').classList.remove('hidden');
           document.getElementById('user-display').innerText = "@" + miNombre;
@@ -618,24 +658,23 @@
         async function recogerCreditos() {
             const { data: yo, error: eYo } = await sb.from('jugadores').select('*').eq('nombre', miNombre).single();
             if (eYo) { console.error(eYo); return alert("Error leyendo tu usuario."); }
-        
+
             if ((yo?.creditos ?? 0) > 0) return alert("Ya tienes créditos. Primero gástalos.");
-        
-            // ✅ NUEVO: si ya apostó, no puede recoger
+
             if (yo?.seleccion2 || yo?.seleccion3) {
                 return alert("Ya has enviado tu apuesta esta semana. No puedes recoger créditos ahora.");
             }
-        
+
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('creditos_habilitados').eq('id',1).single();
             if (eJg) { console.error(eJg); return alert("Error comprobando entrega de créditos."); }
             if (!jg?.creditos_habilitados) return alert("La entrega de créditos no está habilitada.");
-        
+
             const racha = yo?.racha_actual ?? 0;
             const cantidad = (racha >= 2) ? 6 : 5;
-        
+
             const { error } = await sb.from('jugadores').update({ creditos: cantidad }).eq('nombre', miNombre);
             if (error) { console.error(error); return alert("Error recogiendo créditos."); }
-        
+
             alert(`Has recogido ${cantidad} créditos ✅`);
             refrescar();
         }
@@ -656,8 +695,10 @@
             __usersCache = rk || [];
             actualizarSelectsAdmin();
 
-            // Admin: render checkboxes validación con opciones actuales
-            renderAdminValidacion(jg || null);
+            // Admin: NO re-renderizar si está seleccionando (1 minuto)
+            if (!adminIsSelecting) {
+                renderAdminValidacion(jg || null);
+            }
 
             document.getElementById('info-content-user').innerHTML = (__statsCache || []).map(s =>
                 `<tr>
@@ -676,7 +717,7 @@
 
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
-            
+
             if (creditosHabilitados && myCredits === 0 && noHaApostado) {
                 btnCred.classList.remove('hidden');
             } else {
@@ -705,8 +746,12 @@
 
                     if (!yo?.seleccion2 && !cerrada) {
                         btn.classList.remove('hidden');
-                        r2.innerHTML = (jg.opciones2 || []).map(o => `<label><input type="radio" name="c2" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
-                        r3.innerHTML = (jg.opciones3 || []).map(o => `<label><input type="radio" name="c3" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
+
+                        // Usuario: NO re-renderizar radios si está seleccionando (1 minuto)
+                        if (!userIsSelecting) {
+                            r2.innerHTML = (jg.opciones2 || []).map(o => `<label><input type="radio" name="c2" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
+                            r3.innerHTML = (jg.opciones3 || []).map(o => `<label><input type="radio" name="c3" value="${escapeHtml(o)}"> ${escapeHtml(o)}</label><br>`).join('');
+                        }
                     } else if (!yo?.seleccion2 && cerrada) {
                         r2.innerHTML = `⛔ Votación cerrada (${formatFechaHora(jg.cierre_votacion)})`;
                         r3.innerHTML = `Esperando validación del admin...`;
@@ -723,6 +768,10 @@
                                         Ganancia potencial: <b>${b3 * 3}</b> pts`;
 
                         btn.classList.add('hidden');
+
+                        // Ya no está seleccionando
+                        userIsSelecting = false;
+                        if (__userSelectTimer) clearTimeout(__userSelectTimer);
                     }
                 } else {
                     r2.innerHTML = "No hay ronda activa";
@@ -763,7 +812,6 @@
 
             if (e1) { console.error(e1); return alert("Error activando ronda."); }
 
-            // limpiamos selecciones + apuestas (NO tocamos créditos)
             const { error: e2 } = await sb.from('jugadores').update({
                 seleccion2: null,
                 seleccion3: null,
@@ -772,6 +820,12 @@
             }).neq('nombre','');
 
             if (e2) { console.error(e2); return alert("Ronda creada, pero error al limpiar selecciones."); }
+
+            // reset guards
+            userIsSelecting = false;
+            adminIsSelecting = false;
+            if (__userSelectTimer) clearTimeout(__userSelectTimer);
+            if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
 
             alert(`Ronda ${nuevaRondaNum} iniciada.\nCierre: ${formatFechaHora(cierreISO)}\nRecuerda habilitar créditos.`);
         }
@@ -802,7 +856,7 @@
             bet1 = parseInt(bet1, 10);
             if (Number.isNaN(bet1) || bet1 < 1 || bet1 > (total - 1)) return alert(`Debe ser un número entre 1 y ${total - 1}.`);
 
-            const bet3 = total - bet1; // siempre >=1
+            const bet3 = total - bet1;
             if (bet3 < 1) return alert("Debes apostar al menos 1 crédito al pronóstico de 3 puntos.");
 
             const ok = confirm(`Confirmar apuesta:\n- 1 punto: ${bet1} créditos (potencial: ${bet1 * 1} pts)\n- 3 puntos: ${bet3} créditos (potencial: ${bet3 * 3} pts)\nTotal: ${total}`);
@@ -817,10 +871,13 @@
             }).eq('nombre', miNombre);
 
             if (error) { console.error(error); return alert("Error al enviar apuesta."); }
+
+            // reset user guard immediately
+            userIsSelecting = false;
+            if (__userSelectTimer) clearTimeout(__userSelectTimer);
         }
 
         async function puntuar() {
-            // obtiene checks seleccionados del admin (si no es admin, no hace nada)
             const w2 = Array.from(document.querySelectorAll('input[name="admwin2"]:checked')).map(x => x.value);
             const w3 = Array.from(document.querySelectorAll('input[name="admwin3"]:checked')).map(x => x.value);
 
@@ -837,11 +894,15 @@
                 console.error("RPC validar_y_puntuar error:", error);
                 return alert(`Error validando ganadores: ${error.message}`);
             }
+
             const { error: eCut } = await sb.from('estado_juego')
-            .update({ creditos_habilitados: false })
-            .eq('id', 1);
-        
+              .update({ creditos_habilitados: false })
+              .eq('id', 1);
             if (eCut) console.error("Error deshabilitando créditos:", eCut);
+
+            // reset admin guard immediately
+            adminIsSelecting = false;
+            if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
 
             alert("Ganadores validados ✅ (puntos por apuestas + racha actualizada)");
         }
@@ -854,6 +915,7 @@
             }
             if (!refreshIntervalId) refreshIntervalId = setInterval(refrescar, 5000);
             startCountdownUpdater();
+            setupSelectionGuards();
             refrescar();
         }
     </script>
