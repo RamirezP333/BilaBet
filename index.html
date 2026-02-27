@@ -612,24 +612,18 @@
         async function recogerCreditos() {
             const { data: yo, error: eYo } = await sb.from('jugadores').select('*').eq('nombre', miNombre).single();
             if (eYo) { console.error(eYo); return alert("Error leyendo tu usuario."); }
-        
             if ((yo?.creditos ?? 0) > 0) return alert("Ya tienes créditos. Primero gástalos.");
-        
-            // ✅ NUEVO: si ya apostó, no puede recoger
-            if (yo?.seleccion2 || yo?.seleccion3) {
-                return alert("Ya has enviado tu apuesta esta semana. No puedes recoger créditos ahora.");
-            }
-        
+
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('creditos_habilitados').eq('id',1).single();
             if (eJg) { console.error(eJg); return alert("Error comprobando entrega de créditos."); }
             if (!jg?.creditos_habilitados) return alert("La entrega de créditos no está habilitada.");
-        
+
             const racha = yo?.racha_actual ?? 0;
             const cantidad = (racha >= 2) ? 6 : 5;
-        
+
             const { error } = await sb.from('jugadores').update({ creditos: cantidad }).eq('nombre', miNombre);
             if (error) { console.error(error); return alert("Error recogiendo créditos."); }
-        
+
             alert(`Has recogido ${cantidad} créditos ✅`);
             refrescar();
         }
@@ -669,13 +663,8 @@
             wallet.textContent = `💼 ${myCredits} créditos`;
 
             const creditosHabilitados = !!jg?.creditos_habilitados;
-            const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
-            
-            if (creditosHabilitados && myCredits === 0 && noHaApostado) {
-                btnCred.classList.remove('hidden');
-            } else {
-                btnCred.classList.add('hidden');
-            }
+            if (creditosHabilitados && myCredits === 0) btnCred.classList.remove('hidden');
+            else btnCred.classList.add('hidden');
 
             const gif = document.getElementById('display-gif');
             const r2 = document.getElementById('render-o2');
