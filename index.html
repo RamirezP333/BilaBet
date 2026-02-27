@@ -752,7 +752,6 @@
                     ronda_id: 0,
                     ronda_num: nuevaRondaNum,
                     cierre_votacion: cierreISO,
-                    creditos_habilitados: false
                 })
                 .eq('id', 1);
 
@@ -832,6 +831,11 @@
                 console.error("RPC validar_y_puntuar error:", error);
                 return alert(`Error validando ganadores: ${error.message}`);
             }
+            const { error: eCut } = await sb.from('estado_juego')
+            .update({ creditos_habilitados: false })
+            .eq('id', 1);
+        
+            if (eCut) console.error("Error deshabilitando créditos:", eCut);
 
             alert("Ganadores validados ✅ (puntos por apuestas + racha actualizada)");
         }
