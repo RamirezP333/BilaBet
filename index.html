@@ -30,6 +30,7 @@
         .vote-box { background: #fffde7; padding: 10px; border-radius: 10px; border-left: 5px solid var(--primary); margin: 10px 0; text-align: left; }
 
         .admin-grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .admin-grid-3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .small-help { font-size: 12px; color:#475569; margin-top:4px; }
 
         .status-pill {
@@ -136,6 +137,14 @@
             line-height:1.2;
             word-break: break-word;
         }
+
+        /* ✅ NUEVO: tabla clasificación */
+        .liga-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+        .liga-table th { background:#111827; color:white; padding:8px 6px; border:1px solid #0f172a; font-weight:700; }
+        .liga-table td { padding:8px 6px; border:1px solid #e5e7eb; text-align:center; background:#fff; }
+        .liga-table td.team { text-align:left; font-weight:700; color:#0f172a; }
+        .liga-table .pos { width:34px; font-weight:800; color:#0f172a; }
+        .liga-wrap { overflow-x:auto; }
     </style>
 </head>
 <body>
@@ -149,6 +158,36 @@
 
     <div id="admin-ui" class="card hidden">
         <h3>🛠️ PANEL ADMIN</h3>
+
+        <!-- ✅ NUEVO: CLASIFICACIÓN -->
+        <div class="admin-section">
+            <h4>0. Clasificación Liga</h4>
+
+            <label style="font-size:13px; font-weight:bold;">Seleccionar equipo</label>
+            <select id="adm-select-team" onchange="cargarTeamSeleccionado()">
+                <option value="">(Nuevo equipo)</option>
+            </select>
+
+            <input type="text" id="team-nombre" placeholder="Nombre equipo">
+
+            <div class="admin-grid-3">
+                <div><label style="font-size:12px; font-weight:bold;">J</label><input type="number" id="team-j" placeholder="J"></div>
+                <div><label style="font-size:12px; font-weight:bold;">G</label><input type="number" id="team-g" placeholder="G"></div>
+                <div><label style="font-size:12px; font-weight:bold;">E</label><input type="number" id="team-e" placeholder="E"></div>
+            </div>
+            <div class="admin-grid-3">
+                <div><label style="font-size:12px; font-weight:bold;">P</label><input type="number" id="team-p" placeholder="P"></div>
+                <div><label style="font-size:12px; font-weight:bold;">GF</label><input type="number" id="team-gf" placeholder="GF"></div>
+                <div><label style="font-size:12px; font-weight:bold;">GC</label><input type="number" id="team-gc" placeholder="GC"></div>
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:bold;">Pts</label>
+                <input type="number" id="team-pts" placeholder="Pts">
+            </div>
+
+            <button onclick="guardarTeam()" style="background:#22c55e">AÑADIR / ACTUALIZAR EQUIPO</button>
+            <button onclick="eliminarTeamSeleccionado()" style="background:#ef4444">ELIMINAR EQUIPO</button>
+        </div>
 
         <div class="admin-section">
             <h4>1. Jugadores (Tabla de apoyo)</h4>
@@ -188,7 +227,6 @@
                 </div>
             </div>
 
-            <!-- ✅ NUEVO: modificar racha -->
             <div class="admin-grid-2">
                 <div>
                     <label style="font-size:13px; font-weight:bold;">Racha actual</label>
@@ -258,7 +296,31 @@
         <div id="estado-ronda-box" style="margin-bottom:10px;"></div>
         <div id="countdown-box" class="countdown hidden"></div>
 
-        <div class="card" style="border:none; background:#fffde7; padding:10px; width:100%; margin:0;">
+        <!-- ✅ NUEVO: CLASIFICACIÓN ANTES DE ESTADÍSTICAS -->
+        <div class="card" style="border:none; background:#f8fafc; padding:10px; width:100%; margin:10px 0 0;">
+            <h4>📋 CLASIFICACIÓN</h4>
+            <div class="liga-wrap">
+                <table class="liga-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th style="text-align:left;">Equipo</th>
+                            <th>J</th>
+                            <th>G</th>
+                            <th>E</th>
+                            <th>P</th>
+                            <th>GF</th>
+                            <th>GC</th>
+                            <th>DG</th>
+                            <th>Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liga-content"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="border:none; background:#fffde7; padding:10px; width:100%; margin:10px 0 0;">
             <h4>📊 ESTADÍSTICAS</h4>
             <table class="info-table-user">
                 <thead>
@@ -300,6 +362,7 @@
 
         let __statsCache = [];
         let __usersCache = [];
+        let __ligaCache = [];
 
         // --- Anti-desmarcado (1 minuto) ---
         let userIsSelecting = false;
@@ -508,8 +571,55 @@
             }).join('');
         }
 
+        // ✅ NUEVO: render clasificación
+        function renderLiga(ligaRows) {
+            const tbody = document.getElementById('liga-content');
+            if (!tbody) return;
+
+            const rows = (ligaRows || []).slice().sort((a,b) => {
+                const pa = Number(a.pts || 0), pb = Number(b.pts || 0);
+                if (pb !== pa) return pb - pa;
+                const dga = Number(a.gf || 0) - Number(a.gc || 0);
+                const dgb = Number(b.gf || 0) - Number(b.gc || 0);
+                if (dgb !== dga) return dgb - dga;
+                const gfa = Number(a.gf || 0), gfb = Number(b.gf || 0);
+                if (gfb !== gfa) return gfb - gfa;
+                return String(a.equipo||'').localeCompare(String(b.equipo||''), 'es', { sensitivity:'base' });
+            });
+
+            tbody.innerHTML = rows.map((t, idx) => {
+                const gf = Number(t.gf || 0);
+                const gc = Number(t.gc || 0);
+                const dg = gf - gc;
+
+                return `
+                    <tr>
+                        <td class="pos">${idx+1}</td>
+                        <td class="team">${escapeHtml(t.equipo)}</td>
+                        <td>${Number(t.j||0)}</td>
+                        <td>${Number(t.g||0)}</td>
+                        <td>${Number(t.e||0)}</td>
+                        <td>${Number(t.p||0)}</td>
+                        <td>${gf}</td>
+                        <td>${gc}</td>
+                        <td>${dg}</td>
+                        <td><b>${Number(t.pts||0)}</b></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         function actualizarSelectsAdmin() {
             if (!esAdmin) return;
+
+            const selT = document.getElementById('adm-select-team');
+            if (selT) {
+                const currentT = selT.value;
+                selT.innerHTML = `<option value="">(Nuevo equipo)</option>` + __ligaCache
+                    .slice().sort((a,b)=> String(a.equipo||'').localeCompare(String(b.equipo||''), 'es', { sensitivity:'base' }))
+                    .map(t => `<option value="${escapeHtml(t.equipo)}">${escapeHtml(t.equipo)}</option>`).join('');
+                selT.value = currentT || '';
+            }
 
             const selP = document.getElementById('adm-select-player');
             const currentP = selP.value;
@@ -522,6 +632,78 @@
             selU.innerHTML = `<option value="">(Selecciona un usuario)</option>` + __usersCache
                 .map(u => `<option value="${escapeHtml(u.nombre)}">@${escapeHtml(u.nombre)}</option>`).join('');
             selU.value = currentU || '';
+        }
+
+        // ✅ NUEVO: cargar equipo seleccionado
+        function cargarTeamSeleccionado() {
+            const equipo = document.getElementById('adm-select-team').value;
+            const t = __ligaCache.find(x => x.equipo === equipo);
+
+            if (!equipo || !t) {
+                document.getElementById('team-nombre').value = equipo || "";
+                document.getElementById('team-j').value = "";
+                document.getElementById('team-g').value = "";
+                document.getElementById('team-e').value = "";
+                document.getElementById('team-p').value = "";
+                document.getElementById('team-gf').value = "";
+                document.getElementById('team-gc').value = "";
+                document.getElementById('team-pts').value = "";
+                return;
+            }
+
+            document.getElementById('team-nombre').value = t.equipo || "";
+            document.getElementById('team-j').value = t.j ?? 0;
+            document.getElementById('team-g').value = t.g ?? 0;
+            document.getElementById('team-e').value = t.e ?? 0;
+            document.getElementById('team-p').value = t.p ?? 0;
+            document.getElementById('team-gf').value = t.gf ?? 0;
+            document.getElementById('team-gc').value = t.gc ?? 0;
+            document.getElementById('team-pts').value = t.pts ?? 0;
+        }
+
+        // ✅ NUEVO: guardar/actualizar equipo
+        async function guardarTeam() {
+            const equipo = document.getElementById('team-nombre').value.trim();
+            if (!equipo) return alert("Nombre de equipo obligatorio.");
+
+            const payload = {
+                equipo,
+                j: parseInt(document.getElementById('team-j').value || 0, 10),
+                g: parseInt(document.getElementById('team-g').value || 0, 10),
+                e: parseInt(document.getElementById('team-e').value || 0, 10),
+                p: parseInt(document.getElementById('team-p').value || 0, 10),
+                gf: parseInt(document.getElementById('team-gf').value || 0, 10),
+                gc: parseInt(document.getElementById('team-gc').value || 0, 10),
+                pts: parseInt(document.getElementById('team-pts').value || 0, 10),
+            };
+
+            const { error } = await sb.from('liga_clasificacion').upsert(payload, { onConflict: 'equipo' });
+            if (error) {
+                console.error(error);
+                return alert("Error guardando equipo.");
+            }
+
+            alert("Equipo guardado ✅");
+            document.getElementById('adm-select-team').value = equipo;
+            refrescar();
+        }
+
+        // ✅ NUEVO: eliminar equipo
+        async function eliminarTeamSeleccionado() {
+            const equipo = document.getElementById('adm-select-team').value;
+            if (!equipo) return alert("Selecciona un equipo.");
+            if (!confirm(`¿Eliminar el equipo "${equipo}" de la clasificación?`)) return;
+
+            const { error } = await sb.from('liga_clasificacion').delete().eq('equipo', equipo);
+            if (error) {
+                console.error(error);
+                return alert("Error eliminando equipo.");
+            }
+
+            alert("Equipo eliminado ✅");
+            document.getElementById('adm-select-team').value = "";
+            cargarTeamSeleccionado();
+            refrescar();
         }
 
         function cargarPlayerSeleccionado() {
@@ -724,20 +906,26 @@
         }
 
         async function refrescar() {
-            const [{ data: st, error: e1 }, { data: rk, error: e2 }, { data: jg, error: e3 }, { data: yo, error: e4 }] = await Promise.all([
+            const [{ data: st, error: e1 }, { data: rk, error: e2 }, { data: jg, error: e3 }, { data: yo, error: e4 }, { data: liga, error: e5 }] = await Promise.all([
                 sb.from('estadisticas').select('*').order('sujeto'),
                 sb.from('jugadores').select('*').order('puntos', { ascending: false }).order('nombre', { ascending: true }),
                 sb.from('estado_juego').select('*').eq('id', 1).single(),
-                miNombre ? sb.from('jugadores').select('*').eq('nombre', miNombre).single() : Promise.resolve({ data: null, error: null })
+                miNombre ? sb.from('jugadores').select('*').eq('nombre', miNombre).single() : Promise.resolve({ data: null, error: null }),
+                sb.from('liga_clasificacion').select('*')
             ]);
 
-            if (e1 || e2 || e3 || e4) console.error("Errores refrescar:", e1, e2, e3, e4);
+            if (e1 || e2 || e3 || e4 || e5) console.error("Errores refrescar:", e1, e2, e3, e4, e5);
 
             window.__lastEstadoJuego = jg || null;
 
             __statsCache = st || [];
             __usersCache = rk || [];
+            __ligaCache = liga || [];
+
             actualizarSelectsAdmin();
+
+            // ✅ render clasificación
+            renderLiga(__ligaCache);
 
             if (!adminIsSelecting) renderAdminValidacion(jg || null);
 
@@ -757,7 +945,6 @@
 
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
-
             if (creditosHabilitados && myCredits === 0 && noHaApostado) btnCred.classList.remove('hidden');
             else btnCred.classList.add('hidden');
 
