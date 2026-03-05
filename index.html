@@ -7,36 +7,162 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #004d3d; --accent: #c1ff00; --bg: #f0f4f2; }
-        body { font-family: 'Arial', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 15px; border: 2px solid var(--primary); width: 100%; max-width: 480px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
-        .status-gif { display: block; margin: 0 auto 15px auto; max-width: 220px; height: auto; border-radius: 12px; }
 
-        input, button, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--primary);
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        .status-gif {
+            display: block;
+            margin: 0 auto 15px auto;
+            max-width: 220px;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        input, button, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
         button:active { transform: scale(0.98); }
-        .btn-del { background: #ef4444; width: auto; padding: 5px 10px; font-size: 12px; margin-left: 5px; }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-del {
+            background: #ef4444;
+            width: auto;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
         .hidden { display: none !important; }
 
-        .admin-section { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: left; border: 1px solid #cbd5e1; }
-        .table-mini { width: 100%; font-size: 12px; border-collapse: collapse; background: white; margin-top: 10px; }
-        .table-mini td { border: 1px solid #ddd; padding: 5px; text-align: center; }
+        .admin-section {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: left;
+            border: 1px solid #cbd5e1;
+        }
 
-        .info-table-user { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-        .info-table-user th { background: #fbc02d; padding: 8px; border: 1px solid #ddd; }
-        .info-table-user td { padding: 8px; border: 1px solid #eee; text-align: center; background: #fff; }
+        .table-mini {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 10px;
+        }
 
-        .am { background: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px; }
-        .ro { background: #f44336; color: white; font-weight: bold; padding: 2px 4px; border-radius: 3px; }
-        .vote-box { background: #fffde7; padding: 10px; border-radius: 10px; border-left: 5px solid var(--primary); margin: 10px 0; text-align: left; }
+        .table-mini td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .info-table-user {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .info-table-user th {
+            background: #fbc02d;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .info-table-user td {
+            padding: 8px;
+            border: 1px solid #eee;
+            text-align: center;
+            background: #fff;
+        }
+
+        .am {
+            background: #ffeb3b;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .ro {
+            background: #f44336;
+            color: white;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .vote-box {
+            background: #fffde7;
+            padding: 12px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            margin: 12px 0;
+            text-align: left;
+        }
 
         .admin-grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .admin-grid-3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .small-help { font-size: 12px; color:#475569; margin-top:4px; }
+
+        .small-help {
+            font-size: 12px;
+            color:#475569;
+            margin-top:4px;
+        }
 
         .status-pill {
-            display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:bold; margin:6px 4px;
-            border: 1px solid #cbd5e1; background:#f8fafc;
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:bold;
+            margin:6px 4px;
+            border: 1px solid #cbd5e1;
+            background:#f8fafc;
         }
+
         .status-open { background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
         .status-closed { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
         .status-final { background:#eef2ff; color:#3730a3; border-color:#c7d2fe; }
@@ -63,33 +189,75 @@
         }
 
         .ranking-row {
-            display:flex; justify-content:space-between; align-items:center;
-            gap:8px; padding:8px 6px; border-bottom:1px solid #eee;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:8px;
+            padding:8px 6px;
+            border-bottom:1px solid #eee;
             transition: transform .2s ease, background .2s ease;
             border-radius: 8px;
         }
+
         .ranking-row:hover { background:#f8fafc; transform: translateY(-1px); }
-        .ranking-left { display:flex; align-items:center; gap:8px; min-width:0; }
-        .ranking-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0f172a; font-weight: 700; }
-        .ranking-name-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-        .ranking-name-row .ranking-name { flex: 1; min-width: 0; }
-        .ranking-meta { display:flex; align-items:center; gap:6px; font-size:12px; color:#64748b; }
-        .badge-medal { font-size:18px; width:24px; text-align:center; }
-        .badge-streak {
-            background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; border-radius:999px;
-            padding:2px 6px; font-size:11px; font-weight:bold;
+
+        .ranking-left {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            min-width:0;
         }
+
+        .ranking-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .ranking-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .ranking-name-row .ranking-name { flex: 1; min-width: 0; }
+
+        .ranking-meta {
+            display:flex;
+            align-items:center;
+            gap:6px;
+            font-size:12px;
+            color:#64748b;
+        }
+
+        .badge-medal { font-size:18px; width:24px; text-align:center; }
+
+        .badge-streak {
+            background:#fff7ed;
+            color:#c2410c;
+            border:1px solid #fed7aa;
+            border-radius:999px;
+            padding:2px 6px;
+            font-size:11px;
+            font-weight:bold;
+        }
+
         .arrow-up { color:#16a34a; font-weight:bold; }
         .arrow-down { color:#dc2626; font-weight:bold; }
         .arrow-same { color:#94a3b8; font-weight:bold; }
 
         .flash-up { animation: pulseUp 0.7s ease; }
         .flash-down { animation: pulseDown 0.7s ease; }
+
         @keyframes pulseUp {
             0% { background:#ecfdf5; transform:translateY(0); }
             50% { background:#dcfce7; transform:translateY(-2px); }
             100% { background:transparent; transform:translateY(0); }
         }
+
         @keyframes pulseDown {
             0% { background:#fef2f2; transform:translateY(0); }
             50% { background:#fee2e2; transform:translateY(-2px); }
@@ -102,6 +270,7 @@
             border-radius: 10px;
             padding: 10px;
         }
+
         .check-item {
             display:flex;
             align-items:center;
@@ -110,35 +279,220 @@
             border-bottom: 1px solid #f1f5f9;
             font-size: 14px;
         }
-        .check-item:last-child { border-bottom: none; }
-        .check-item input { width:auto; margin:0; transform: scale(1.1); }
 
-        .pick-item{
-            display:flex;
-            align-items:center;
-            gap:12px;
-            padding:10px 8px;
-            border-radius:10px;
-            border:1px solid #e2e8f0;
-            background:#ffffff;
-            margin:8px 0;
-            cursor:pointer;
-            user-select:none;
-        }
-        .pick-item input{
+        .check-item:last-child { border-bottom: none; }
+
+        .check-item input {
             width:auto;
             margin:0;
-            transform: scale(1.15);
-            flex: 0 0 auto;
-        }
-        .pick-text{
-            flex:1;
-            min-width:0;
-            line-height:1.2;
-            word-break: break-word;
+            transform: scale(1.1);
         }
 
-        /* ✅ NUEVO: tabla clasificación */
+        .pick-item {
+            width: 100%;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            padding:16px 14px;
+            border-radius:16px;
+            border:2px solid #d4d4d8;
+            background:#ffffff;
+            margin:10px 0;
+            cursor:pointer;
+            user-select:none;
+            appearance:none;
+            -webkit-appearance:none;
+            text-align:left;
+            color:#111827;
+        }
+
+        .pick-item:hover { border-color:#9ca3af; }
+
+        .pick-item.selected {
+            border-color:#065f46;
+            background:#d1fae5;
+            color:#065f46;
+            box-shadow: inset 0 0 0 1px #065f46;
+        }
+
+        .pick-main {
+            flex:1;
+            min-width:0;
+            font-weight:800;
+            font-size:18px;
+            line-height:1.2;
+            word-break:break-word;
+        }
+
+        .pick-check {
+            width:34px;
+            height:34px;
+            border-radius:999px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:#e5e7eb;
+            color:transparent;
+            font-weight:900;
+            font-size:20px;
+            flex: 0 0 auto;
+        }
+
+        .pick-item.selected .pick-check {
+            background:#dcfce7;
+            color:#065f46;
+        }
+
+        .bet-controls {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .bet-label {
+            font-size: 14px;
+            color:#475569;
+            margin-bottom: 10px;
+        }
+
+        .bet-row {
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+        }
+
+        .bet-pill {
+            width:72px;
+            min-width:72px;
+            padding:14px 0;
+            border-radius:16px;
+            border:2px solid #065f46;
+            background:#ffffff;
+            color:#065f46;
+            font-size:18px;
+            font-weight:800;
+            margin:0;
+        }
+
+        .bet-pill.selected {
+            background:#065f46;
+            color:#ffffff;
+        }
+
+        .bet-pill.disabled,
+        .bet-pill:disabled {
+            border-color:#d1d5db;
+            color:#9ca3af;
+            background:#f5f5f5;
+        }
+
+        .bet-total-box {
+            margin: 6px 0 14px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            text-align:center;
+            color:#0f172a;
+        }
+
+        .bet-total-box.ok {
+            background:#ecfdf5;
+            border-color:#bbf7d0;
+            color:#166534;
+        }
+
+        .bet-total-box strong {
+            font-size: 18px;
+        }
+
+        .porra-card {
+            margin-top: 14px;
+            background: #efe7f2;
+            border-left: 5px solid #a21caf;
+            border-radius: 16px;
+            padding: 16px 14px;
+            text-align:left;
+        }
+
+        .porra-title {
+            font-size: 18px;
+            font-weight: 900;
+            color:#111827;
+            margin-bottom: 6px;
+        }
+
+        .porra-sub {
+            font-size: 14px;
+            color:#111827;
+            margin-bottom: 14px;
+        }
+
+        .porra-sub b { color:#000; }
+
+        .score-grid {
+            display:grid;
+            grid-template-columns: 1fr 24px 1fr;
+            gap:12px;
+            align-items:end;
+        }
+
+        .score-col {
+            text-align:center;
+        }
+
+        .score-col label {
+            display:block;
+            font-size:14px;
+            font-weight:900;
+            color:#a21caf;
+            margin-bottom:8px;
+        }
+
+        .score-input {
+            width:100%;
+            height:76px;
+            text-align:center;
+            font-size:34px;
+            border-radius:20px;
+            border:3px solid #a21caf;
+            background:#fff;
+            color:#111827;
+            margin:0;
+        }
+
+        .score-sep {
+            text-align:center;
+            font-size:42px;
+            font-weight:900;
+            color:#111827;
+            padding-bottom: 12px;
+        }
+
+        .score-result {
+            background:#ffffff;
+            border:2px solid #e9d5ff;
+            border-radius:14px;
+            padding:12px;
+            text-align:center;
+            font-size:16px;
+            color:#111827;
+            margin-top:8px;
+        }
+
+        .score-hit {
+            margin-top:8px;
+            font-weight:900;
+            color:#166534;
+        }
+
+        .score-wait {
+            margin-top:8px;
+            font-size:13px;
+            color:#64748b;
+        }
+
         .liga-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
         .liga-table th { background:#111827; color:white; padding:8px 6px; border:1px solid #0f172a; font-weight:700; }
         .liga-table td { padding:8px 6px; border:1px solid #e5e7eb; text-align:center; background:#fff; }
@@ -159,7 +513,6 @@
     <div id="admin-ui" class="card hidden">
         <h3>🛠️ PANEL ADMIN</h3>
 
-        <!-- ✅ NUEVO: CLASIFICACIÓN -->
         <div class="admin-section">
             <h4>0. Clasificación Liga</h4>
 
@@ -269,14 +622,26 @@
         </div>
 
         <div class="admin-section">
-            <h4>5. Validar ganadores (checkbox)</h4>
-            <div class="small-help">Se cargan automáticamente desde la ronda activa. Marca los correctos y valida.</div>
+            <h4>5. Validar ganadores + porra exacta</h4>
+            <div class="small-help">Marca los aciertos de +1 y +3. Si rellenas el marcador exacto, también se validará la porra.</div>
 
             <div style="margin-top:10px; font-weight:bold;">Vale 1 punto</div>
             <div id="adm-win2-list" class="checklist"></div>
 
             <div style="margin-top:10px; font-weight:bold;">Vale 3 puntos</div>
             <div id="adm-win3-list" class="checklist"></div>
+
+            <div style="margin-top:14px; font-weight:bold;">⚽ Marcador exacto oficial</div>
+            <div class="admin-grid-2">
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Bilawal</label>
+                    <input type="number" id="adm-porra-bila" min="0" step="1" placeholder="0" oninput="bumpAdminSelecting()">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Rival</label>
+                    <input type="number" id="adm-porra-rival" min="0" step="1" placeholder="0" oninput="bumpAdminSelecting()">
+                </div>
+            </div>
 
             <button onclick="puntuar()" style="background:#f59e0b; margin-top:12px;">VALIDAR GANADORES</button>
         </div>
@@ -296,7 +661,6 @@
         <div id="estado-ronda-box" style="margin-bottom:10px;"></div>
         <div id="countdown-box" class="countdown hidden"></div>
 
-        <!-- ✅ NUEVO: CLASIFICACIÓN ANTES DE ESTADÍSTICAS -->
         <div class="card" style="border:none; background:#f8fafc; padding:10px; width:100%; margin:10px 0 0;">
             <h4>📋 CLASIFICACIÓN</h4>
             <div class="liga-wrap">
@@ -332,8 +696,19 @@
         </div>
 
         <div id="votos-ui">
-            <div class="vote-box"><strong>VALE 1 PUNTO:</strong><div id="render-o2"></div></div>
-            <div class="vote-box"><strong>VALE 3 PUNTOS:</strong><div id="render-o3"></div></div>
+            <div class="vote-box">
+                <strong>VALE 1 PUNTO (C2):</strong>
+                <div id="render-o2"></div>
+            </div>
+
+            <div class="vote-box">
+                <strong>VALE 3 PUNTOS (C3):</strong>
+                <div id="render-o3"></div>
+            </div>
+
+            <div id="bet-total-box"></div>
+            <div id="porra-exacta-box"></div>
+
             <button id="btn-votar" onclick="votar()" class="hidden" style="background:#22c55e">ENVIAR APUESTA</button>
         </div>
 
@@ -348,7 +723,7 @@
 
     <script>
         const SB_URL = 'https://hhkplxfousaoyjfpnllo.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoa3BseGZvdXNhb3lqZnBubGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4Njc4NTMsImV4cCI6MjA4NzQ0Mzg1M30.SPbJIeYBRm9yBdIZPXh3HSM88k73McLZIAzfhMZWEj0';
+        const SB_KEY = 'TU_ANON_KEY_AQUI';
         const { createClient } = supabase;
         const sb = createClient(SB_URL, SB_KEY);
 
@@ -364,37 +739,39 @@
         let __usersCache = [];
         let __ligaCache = [];
 
-        // --- Anti-desmarcado (1 minuto) ---
         let userIsSelecting = false;
         let adminIsSelecting = false;
         let __userSelectTimer = null;
         let __adminSelectTimer = null;
 
+        let draftSel2 = null;
+        let draftSel3 = null;
+        let draftBet2 = null;
+        let draftBet3 = null;
+        let draftPorraBilawal = '';
+        let draftPorraRival = '';
+        let lastDraftRoundNum = null;
+
         function bumpUserSelecting() {
-          userIsSelecting = true;
-          if (__userSelectTimer) clearTimeout(__userSelectTimer);
-          __userSelectTimer = setTimeout(() => { userIsSelecting = false; }, 60000);
+            userIsSelecting = true;
+            if (__userSelectTimer) clearTimeout(__userSelectTimer);
+            __userSelectTimer = setTimeout(() => { userIsSelecting = false; }, 60000);
         }
+
         function bumpAdminSelecting() {
-          adminIsSelecting = true;
-          if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
-          __adminSelectTimer = setTimeout(() => { adminIsSelecting = false; }, 60000);
+            adminIsSelecting = true;
+            if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
+            __adminSelectTimer = setTimeout(() => { adminIsSelecting = false; }, 60000);
         }
+
         function setupSelectionGuards() {
-          const votosUI = document.getElementById('votos-ui');
-          if (votosUI && !votosUI.__guardsAttached) {
-            votosUI.__guardsAttached = true;
-            votosUI.addEventListener('change', (e) => {
-              if (e.target && (e.target.name === 'c2' || e.target.name === 'c3')) bumpUserSelecting();
-            });
-          }
-          const adminUI = document.getElementById('admin-ui');
-          if (adminUI && !adminUI.__guardsAttached) {
-            adminUI.__guardsAttached = true;
-            adminUI.addEventListener('change', (e) => {
-              if (e.target && (e.target.name === 'admwin2' || e.target.name === 'admwin3')) bumpAdminSelecting();
-            });
-          }
+            const adminUI = document.getElementById('admin-ui');
+            if (adminUI && !adminUI.__guardsAttached) {
+                adminUI.__guardsAttached = true;
+                adminUI.addEventListener('change', (e) => {
+                    if (e.target && (e.target.name === 'admwin2' || e.target.name === 'admwin3')) bumpAdminSelecting();
+                });
+            }
         }
 
         function escapeHtml(str) {
@@ -432,6 +809,7 @@
             const cierreMs = jg?.cierre_votacion ? new Date(jg.cierre_votacion).getTime() : null;
 
             if (!jg || (!jg.opciones2?.length && !jg.opciones3?.length)) return { txt: 'Sin ronda activa', cls: '' };
+            if (jg.ronda_id === 1 && !jg.porra_validada) return { txt: `Ronda ${jg.ronda_num || 0} finalizada (porra pendiente)`, cls: 'status-final' };
             if (jg.ronda_id === 1) return { txt: `Ronda ${jg.ronda_num || 0} finalizada`, cls: 'status-final' };
             if (cierreMs && ahora >= cierreMs) return { txt: `Ronda ${jg.ronda_num || 0} cerrada (pendiente validar)`, cls: 'status-closed' };
             return { txt: `Ronda ${jg.ronda_num || 0} abierta`, cls: 'status-open' };
@@ -451,6 +829,7 @@
                 box.innerHTML = '';
                 return;
             }
+
             const cierre = new Date(jg.cierre_votacion).getTime();
             const ahora = Date.now();
             const diff = cierre - ahora;
@@ -527,15 +906,10 @@
                 const nowPos = currentMap[j.nombre];
                 const prevPos = prevMap[j.nombre];
 
-                if (!prevPos) {
-                    arrows[j.nombre] = { txt: '', cls: 'arrow-same', flash: '' };
-                } else if (nowPos < prevPos) {
-                    arrows[j.nombre] = { txt: `▲ ${prevPos - nowPos}`, cls: 'arrow-up', flash: 'flash-up' };
-                } else if (nowPos > prevPos) {
-                    arrows[j.nombre] = { txt: `▼ ${nowPos - prevPos}`, cls: 'arrow-down', flash: 'flash-down' };
-                } else {
-                    arrows[j.nombre] = { txt: '', cls: 'arrow-same', flash: '' };
-                }
+                if (!prevPos) arrows[j.nombre] = { txt: '', cls: 'arrow-same', flash: '' };
+                else if (nowPos < prevPos) arrows[j.nombre] = { txt: `▲ ${prevPos - nowPos}`, cls: 'arrow-up', flash: 'flash-up' };
+                else if (nowPos > prevPos) arrows[j.nombre] = { txt: `▼ ${nowPos - prevPos}`, cls: 'arrow-down', flash: 'flash-down' };
+                else arrows[j.nombre] = { txt: '', cls: 'arrow-same', flash: '' };
             }
             return arrows;
         }
@@ -571,7 +945,6 @@
             }).join('');
         }
 
-        // ✅ NUEVO: render clasificación
         function renderLiga(ligaRows) {
             const tbody = document.getElementById('liga-content');
             if (!tbody) return;
@@ -634,7 +1007,6 @@
             selU.value = currentU || '';
         }
 
-        // ✅ NUEVO: cargar equipo seleccionado
         function cargarTeamSeleccionado() {
             const equipo = document.getElementById('adm-select-team').value;
             const t = __ligaCache.find(x => x.equipo === equipo);
@@ -661,7 +1033,6 @@
             document.getElementById('team-pts').value = t.pts ?? 0;
         }
 
-        // ✅ NUEVO: guardar/actualizar equipo
         async function guardarTeam() {
             const equipo = document.getElementById('team-nombre').value.trim();
             if (!equipo) return alert("Nombre de equipo obligatorio.");
@@ -685,10 +1056,9 @@
 
             alert("Equipo guardado ✅");
             document.getElementById('adm-select-team').value = equipo;
-            refrescar();
+            await refrescar();
         }
 
-        // ✅ NUEVO: eliminar equipo
         async function eliminarTeamSeleccionado() {
             const equipo = document.getElementById('adm-select-team').value;
             if (!equipo) return alert("Selecciona un equipo.");
@@ -703,7 +1073,7 @@
             alert("Equipo eliminado ✅");
             document.getElementById('adm-select-team').value = "";
             cargarTeamSeleccionado();
-            refrescar();
+            await refrescar();
         }
 
         function cargarPlayerSeleccionado() {
@@ -746,10 +1116,11 @@
 
             const { error } = await sb.from('estadisticas').delete().eq('sujeto', sujeto);
             if (error) { console.error(error); return alert("Error eliminando jugador."); }
+
             alert("Jugador eliminado ✅");
             document.getElementById('adm-select-player').value = "";
             cargarPlayerSeleccionado();
-            refrescar();
+            await refrescar();
         }
 
         async function eliminarUsuarioSeleccionado() {
@@ -759,10 +1130,11 @@
 
             const { error } = await sb.from('jugadores').delete().eq('nombre', nom);
             if (error) { console.error(error); return alert("Error eliminando usuario."); }
+
             alert("Usuario eliminado ✅");
             document.getElementById('adm-select-user').value = "";
             cargarUserSeleccionado();
-            refrescar();
+            await refrescar();
         }
 
         async function actualizarUsuarioAdmin() {
@@ -788,14 +1160,14 @@
             if (error) { console.error(error); return alert("Error actualizando usuario."); }
 
             alert("Usuario actualizado ✅");
-            refrescar();
+            await refrescar();
         }
 
         async function habilitarEntregaCreditos() {
             const { error } = await sb.from('estado_juego').update({ creditos_habilitados: true }).eq('id', 1);
             if (error) { console.error(error); return alert("Error habilitando entrega de créditos."); }
             alert("Entrega de créditos habilitada ✅");
-            refrescar();
+            await refrescar();
         }
 
         function renderAdminValidacion(jg) {
@@ -824,27 +1196,347 @@
             `).join('') || `<div style="font-size:12px; color:#64748b;">Sin opciones.</div>`;
         }
 
+        function renderAdminPorra(jg) {
+            if (!esAdmin) return;
+            const inputA = document.getElementById('adm-porra-bila');
+            const inputB = document.getElementById('adm-porra-rival');
+            if (!inputA || !inputB) return;
+
+            inputA.value = jg?.porra_goles_bilawal ?? '';
+            inputB.value = jg?.porra_goles_rival ?? '';
+        }
+
+        function resetDraftState(forceAll = false) {
+            draftSel2 = null;
+            draftSel3 = null;
+            draftBet2 = null;
+            draftBet3 = null;
+            if (forceAll) {
+                draftPorraBilawal = '';
+                draftPorraRival = '';
+            }
+        }
+
+        function syncDraftState(jg, yo) {
+            const rondaActual = jg?.ronda_num ?? null;
+
+            if (lastDraftRoundNum !== rondaActual) {
+                resetDraftState(true);
+                lastDraftRoundNum = rondaActual;
+            }
+
+            if (yo?.seleccion2 || yo?.seleccion3) {
+                draftSel2 = yo.seleccion2 ?? null;
+                draftSel3 = yo.seleccion3 ?? null;
+                draftBet2 = Number.isInteger(yo.apuesta2) ? yo.apuesta2 : (yo.apuesta2 ?? null);
+                draftBet3 = Number.isInteger(yo.apuesta3) ? yo.apuesta3 : (yo.apuesta3 ?? null);
+                draftPorraBilawal = yo.porra_bilawal ?? '';
+                draftPorraRival = yo.porra_rival ?? '';
+                return;
+            }
+
+            const opciones2 = jg?.opciones2 || [];
+            const opciones3 = jg?.opciones3 || [];
+            const total = Number(yo?.creditos ?? 0);
+            const maxBet = Math.max(total - 1, 0);
+
+            if (draftSel2 && !opciones2.includes(draftSel2)) draftSel2 = null;
+            if (draftSel3 && !opciones3.includes(draftSel3)) draftSel3 = null;
+
+            if (!(Number.isInteger(draftBet2) && draftBet2 >= 1 && draftBet2 <= maxBet)) draftBet2 = null;
+            if (!(Number.isInteger(draftBet3) && draftBet3 >= 1 && draftBet3 <= maxBet)) draftBet3 = null;
+
+            if (total === 0) {
+                draftBet2 = null;
+                draftBet3 = null;
+            }
+        }
+
+        function pickOption(tipo, valor) {
+            bumpUserSelecting();
+            if (tipo === '2') draftSel2 = valor;
+            else draftSel3 = valor;
+            renderDraftVotingUI(window.__lastEstadoJuego, window.__lastYo);
+        }
+
+        function pickBet(tipo, valor) {
+            bumpUserSelecting();
+            if (tipo === '2') draftBet2 = valor;
+            else draftBet3 = valor;
+            renderDraftVotingUI(window.__lastEstadoJuego, window.__lastYo);
+        }
+
+        function setPorraDraft(lado, valor) {
+            bumpUserSelecting();
+            if (lado === 'b') draftPorraBilawal = valor;
+            else draftPorraRival = valor;
+        }
+
+        function getPorraDraftState() {
+            const a = String(draftPorraBilawal ?? '').trim();
+            const b = String(draftPorraRival ?? '').trim();
+
+            if (!a && !b) return { ok: true, empty: true, a: null, b: null };
+            if (!a || !b) return { ok: false, empty: false, msg: 'Rellena ambos goles o deja la porra vacía.' };
+
+            const na = Number(a);
+            const nb = Number(b);
+
+            if (!Number.isInteger(na) || !Number.isInteger(nb) || na < 0 || nb < 0) {
+                return { ok: false, empty: false, msg: 'La porra exacta debe ser con números enteros iguales o mayores que 0.' };
+            }
+
+            return { ok: true, empty: false, a: na, b: nb };
+        }
+
+        function canSendVote(yo) {
+            const total = Number(yo?.creditos ?? 0);
+            const porraState = getPorraDraftState();
+
+            return !!draftSel2 &&
+                   !!draftSel3 &&
+                   Number.isInteger(draftBet2) &&
+                   Number.isInteger(draftBet3) &&
+                   draftBet2 >= 1 &&
+                   draftBet3 >= 1 &&
+                   (draftBet2 + draftBet3 === total) &&
+                   porraState.ok;
+        }
+
+        function renderPickCards(opciones, tipo, selectedValue) {
+            if (!opciones || opciones.length === 0) {
+                return `<div class="small-help" style="margin-top:10px;">No hay opciones cargadas.</div>`;
+            }
+
+            return opciones.map(o => `
+                <button
+                    type="button"
+                    class="pick-item ${selectedValue === o ? 'selected' : ''}"
+                    data-value="${escapeHtml(o)}"
+                    onclick="pickOption('${tipo}', this.dataset.value)"
+                >
+                    <div class="pick-main">${escapeHtml(o)}</div>
+                    <div class="pick-check">${selectedValue === o ? '✓' : ''}</div>
+                </button>
+            `).join('');
+        }
+
+        function renderBetButtons(tipo, totalCreditos, selectedBet, otherBet) {
+            if (!totalCreditos || totalCreditos < 2) {
+                return `<div class="small-help">Recoge tus créditos para poder repartir la apuesta.</div>`;
+            }
+
+            let html = `<div class="bet-row">`;
+            for (let i = 1; i <= totalCreditos - 1; i++) {
+                const disabled = Number.isInteger(otherBet) && (i + otherBet > totalCreditos);
+                html += `
+                    <button
+                        type="button"
+                        class="bet-pill ${selectedBet === i ? 'selected' : ''} ${disabled ? 'disabled' : ''}"
+                        onclick="pickBet('${tipo}', ${i})"
+                        ${disabled ? 'disabled' : ''}
+                    >${i}</button>
+                `;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function renderVoteSection(opciones, tipo, selectedValue, totalCreditos, selectedBet, otherBet) {
+            return `
+                ${renderPickCards(opciones, tipo, selectedValue)}
+                <div class="bet-controls">
+                    <div class="bet-label">¿Cuántos créditos apuestas?</div>
+                    ${renderBetButtons(tipo, totalCreditos, selectedBet, otherBet)}
+                </div>
+            `;
+        }
+
+        function renderBetTotalBox(yo) {
+            const total = Number(yo?.creditos ?? 0);
+            const asignados = Number(draftBet2 || 0) + Number(draftBet3 || 0);
+            const porraState = getPorraDraftState();
+
+            if (!total) {
+                return `
+                    <div class="bet-total-box">
+                        <strong>Sin créditos</strong>
+                        <div class="small-help">Pulsa “Recoger créditos” cuando el admin los habilite.</div>
+                    </div>
+                `;
+            }
+
+            let msg = '';
+            let ok = false;
+
+            if (!draftSel2 || !draftSel3) msg = 'Elige una opción de 1 punto y otra de 3 puntos.';
+            else if (!Number.isInteger(draftBet2) || !Number.isInteger(draftBet3)) msg = 'Selecciona cuántos créditos apuestas en cada bloque.';
+            else if (asignados < total) msg = `Te faltan ${total - asignados} crédito(s) por repartir.`;
+            else if (asignados > total) msg = 'Has superado el total disponible.';
+            else if (!porraState.ok) msg = porraState.msg;
+            else {
+                msg = 'Todo listo para enviar.';
+                ok = true;
+            }
+
+            return `
+                <div class="bet-total-box ${ok ? 'ok' : ''}">
+                    <strong>Total: ${asignados} / ${total} créditos</strong>
+                    <div class="small-help">${escapeHtml(msg)}</div>
+                </div>
+            `;
+        }
+
+        function buildPorraCardEditable(jg) {
+            const rivalTxt = jg?.siguiente_rival || 'RIVAL';
+            return `
+                <div class="porra-card">
+                    <div class="porra-title">⚽ PORRA: MARCADOR EXACTO</div>
+                    <div class="porra-sub">(Acierto exacto = <b>+5 puntos</b>)</div>
+
+                    <div class="score-grid">
+                        <div class="score-col">
+                            <label>BILAWAL</label>
+                            <input
+                                class="score-input"
+                                id="porra-bila-input"
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputmode="numeric"
+                                value="${escapeHtml(draftPorraBilawal)}"
+                                oninput="setPorraDraft('b', this.value)"
+                                placeholder="0"
+                            >
+                        </div>
+
+                        <div class="score-sep">-</div>
+
+                        <div class="score-col">
+                            <label>${escapeHtml(rivalTxt)}</label>
+                            <input
+                                class="score-input"
+                                id="porra-rival-input"
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputmode="numeric"
+                                value="${escapeHtml(draftPorraRival)}"
+                                oninput="setPorraDraft('r', this.value)"
+                                placeholder="0"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="score-wait">La porra exacta es opcional, pero si la rellenas se enviará junto con tu apuesta.</div>
+                </div>
+            `;
+        }
+
+        function buildPorraCardResumen(jg, yo) {
+            const rivalTxt = jg?.siguiente_rival || 'RIVAL';
+            const miA = yo?.porra_bilawal;
+            const miB = yo?.porra_rival;
+            const oficialA = jg?.porra_goles_bilawal;
+            const oficialB = jg?.porra_goles_rival;
+
+            let inner = `
+                <div class="porra-card">
+                    <div class="porra-title">⚽ PORRA: MARCADOR EXACTO</div>
+                    <div class="porra-sub">(Acierto exacto = <b>+5 puntos</b>)</div>
+            `;
+
+            if (miA !== null && miA !== undefined && miB !== null && miB !== undefined) {
+                inner += `
+                    <div class="score-result">
+                        Tu porra: <b>BILAWAL ${miA} - ${miB} ${escapeHtml(rivalTxt)}</b>
+                    </div>
+                `;
+            } else if (miNombre) {
+                inner += `
+                    <div class="score-result">
+                        No enviaste marcador exacto.
+                    </div>
+                `;
+            }
+
+            if (jg?.porra_validada) {
+                inner += `
+                    <div class="score-result">
+                        Resultado oficial: <b>BILAWAL ${oficialA ?? '-'} - ${oficialB ?? '-'} ${escapeHtml(rivalTxt)}</b>
+                    </div>
+                `;
+
+                if (
+                    miA !== null && miA !== undefined &&
+                    miB !== null && miB !== undefined &&
+                    Number(miA) === Number(oficialA) &&
+                    Number(miB) === Number(oficialB)
+                ) {
+                    inner += `<div class="score-hit">🎯 Has acertado el marcador exacto (+5 pts)</div>`;
+                }
+            } else {
+                inner += `<div class="score-wait">Pendiente de validación por el admin.</div>`;
+            }
+
+            inner += `</div>`;
+            return inner;
+        }
+
+        function renderDraftVotingUI(jg, yo) {
+            const r2 = document.getElementById('render-o2');
+            const r3 = document.getElementById('render-o3');
+            const totalBox = document.getElementById('bet-total-box');
+            const porraBox = document.getElementById('porra-exacta-box');
+            const btn = document.getElementById('btn-votar');
+
+            if (!jg) {
+                r2.innerHTML = "No hay ronda activa";
+                r3.innerHTML = "";
+                totalBox.innerHTML = "";
+                porraBox.innerHTML = "";
+                btn.classList.add('hidden');
+                btn.disabled = true;
+                return;
+            }
+
+            const totalCreditos = Number(yo?.creditos ?? 0);
+
+            r2.innerHTML = renderVoteSection(jg.opciones2 || [], '2', draftSel2, totalCreditos, draftBet2, draftBet3);
+            r3.innerHTML = renderVoteSection(jg.opciones3 || [], '3', draftSel3, totalCreditos, draftBet3, draftBet2);
+            totalBox.innerHTML = renderBetTotalBox(yo);
+            porraBox.innerHTML = buildPorraCardEditable(jg);
+
+            if (miNombre) {
+                btn.classList.remove('hidden');
+                btn.disabled = !canSendVote(yo);
+            } else {
+                btn.classList.add('hidden');
+                btn.disabled = true;
+            }
+        }
+
         async function entrar() {
-          miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
-          if(!miNombre) return;
+            miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
+            if (!miNombre) return;
 
-          const { error } = await sb.from('jugadores')
-            .upsert({ nombre: miNombre }, { onConflict: 'nombre' });
+            const { error } = await sb.from('jugadores')
+                .upsert({ nombre: miNombre }, { onConflict: 'nombre' });
 
-          if (error) {
-            console.error("Error entrar:", error);
-            alert(`Error al entrar:\n${error.message || error}\n\nCode: ${error.code || ''}`);
-            return;
-          }
+            if (error) {
+                console.error("Error entrar:", error);
+                alert(`Error al entrar:\n${error.message || error}\n\nCode: ${error.code || ''}`);
+                return;
+            }
 
-          document.getElementById('auth-ui').classList.add('hidden');
-          document.getElementById('game-ui').classList.remove('hidden');
-          document.getElementById('user-display').innerText = "@" + miNombre;
-          iniciar();
+            document.getElementById('auth-ui').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            document.getElementById('user-display').innerText = "@" + miNombre;
+            iniciar();
         }
 
         function accesoAdmin() {
-            if(prompt("Clave:") === "trusttheblan") {
+            if (prompt("Clave:") === "trusttheblan") {
                 esAdmin = true;
                 document.getElementById('auth-ui').classList.add('hidden');
                 document.getElementById('admin-ui').classList.remove('hidden');
@@ -852,13 +1544,16 @@
 
                 const now = new Date();
                 now.setHours(now.getHours() + 1);
+
                 const yyyy = now.getFullYear();
                 const mm = String(now.getMonth() + 1).padStart(2, '0');
                 const dd = String(now.getDate()).padStart(2, '0');
                 const hh = String(now.getHours()).padStart(2, '0');
                 const mi = String(now.getMinutes()).padStart(2, '0');
+
                 const fechaInp = document.getElementById('adm-cierre-fecha');
                 const horaInp = document.getElementById('adm-cierre-hora');
+
                 if (fechaInp && !fechaInp.value) fechaInp.value = `${yyyy}-${mm}-${dd}`;
                 if (horaInp && !horaInp.value) horaInp.value = `${hh}:${mi}`;
 
@@ -871,17 +1566,18 @@
             const g = document.getElementById('info-goles').value;
             const a = document.getElementById('info-am').value || 0;
             const r = document.getElementById('info-ro').value || 0;
-            if(!s) return alert("Nombre obligatorio");
+            if (!s) return alert("Nombre obligatorio");
 
             const { error } = await sb.from('estadisticas').upsert(
                 { sujeto: s, dato1: g, dato2: a, dato3: r },
                 { onConflict: 'sujeto' }
             );
+
             if (error) { console.error(error); return alert("Error guardando jugador."); }
 
             alert("Guardado ✅");
             document.getElementById('adm-select-player').value = s;
-            refrescar();
+            await refrescar();
         }
 
         async function recogerCreditos() {
@@ -902,11 +1598,17 @@
             if (error) { console.error(error); return alert("Error recogiendo créditos."); }
 
             alert(`Has recogido ${cantidad} créditos ✅`);
-            refrescar();
+            await refrescar();
         }
 
         async function refrescar() {
-            const [{ data: st, error: e1 }, { data: rk, error: e2 }, { data: jg, error: e3 }, { data: yo, error: e4 }, { data: liga, error: e5 }] = await Promise.all([
+            const [
+                { data: st, error: e1 },
+                { data: rk, error: e2 },
+                { data: jg, error: e3 },
+                { data: yo, error: e4 },
+                { data: liga, error: e5 }
+            ] = await Promise.all([
                 sb.from('estadisticas').select('*').order('sujeto'),
                 sb.from('jugadores').select('*').order('puntos', { ascending: false }).order('nombre', { ascending: true }),
                 sb.from('estado_juego').select('*').eq('id', 1).single(),
@@ -917,17 +1619,19 @@
             if (e1 || e2 || e3 || e4 || e5) console.error("Errores refrescar:", e1, e2, e3, e4, e5);
 
             window.__lastEstadoJuego = jg || null;
+            window.__lastYo = yo || null;
 
             __statsCache = st || [];
             __usersCache = rk || [];
             __ligaCache = liga || [];
 
             actualizarSelectsAdmin();
-
-            // ✅ render clasificación
             renderLiga(__ligaCache);
 
-            if (!adminIsSelecting) renderAdminValidacion(jg || null);
+            if (!adminIsSelecting) {
+                renderAdminValidacion(jg || null);
+                renderAdminPorra(jg || null);
+            }
 
             document.getElementById('info-content-user').innerHTML = (__statsCache || []).map(s =>
                 `<tr>
@@ -945,11 +1649,14 @@
 
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
-            if (creditosHabilitados && myCredits === 0 && noHaApostado) btnCred.classList.remove('hidden');
+
+            if (miNombre && creditosHabilitados && myCredits === 0 && noHaApostado) btnCred.classList.remove('hidden');
             else btnCred.classList.add('hidden');
 
             const r2 = document.getElementById('render-o2');
             const r3 = document.getElementById('render-o3');
+            const totalBox = document.getElementById('bet-total-box');
+            const porraBox = document.getElementById('porra-exacta-box');
             const btn = document.getElementById('btn-votar');
             const estadoBox = document.getElementById('estado-ronda-box');
 
@@ -958,35 +1665,27 @@
             renderCountdown(jg || {});
 
             if (jg) {
+                syncDraftState(jg, yo);
+
                 if (jg.ronda_id === 1) {
                     r2.innerHTML = `Ganadores (+1): <b>${escapeHtml(jg.correcta2 || '-')}</b>`;
                     r3.innerHTML = `Ganadores (+3): <b>${escapeHtml(jg.correcta3 || '-')}</b>`;
+                    totalBox.innerHTML = '';
+                    porraBox.innerHTML = buildPorraCardResumen(jg, yo || null);
                     btn.classList.add('hidden');
+                    btn.disabled = true;
                 } else if ((jg.opciones2?.length > 0 || jg.opciones3?.length > 0)) {
                     const cerrada = estaVotacionCerrada(jg);
 
                     if (!yo?.seleccion2 && !cerrada) {
-                        btn.classList.remove('hidden');
-
-                        if (!userIsSelecting) {
-                            r2.innerHTML = (jg.opciones2 || []).map(o =>
-                                `<label class="pick-item">
-                                    <input type="radio" name="c2" value="${escapeHtml(o)}">
-                                    <span class="pick-text">${escapeHtml(o)}</span>
-                                 </label>`
-                            ).join('');
-
-                            r3.innerHTML = (jg.opciones3 || []).map(o =>
-                                `<label class="pick-item">
-                                    <input type="radio" name="c3" value="${escapeHtml(o)}">
-                                    <span class="pick-text">${escapeHtml(o)}</span>
-                                 </label>`
-                            ).join('');
-                        }
+                        renderDraftVotingUI(jg, yo);
                     } else if (!yo?.seleccion2 && cerrada) {
                         r2.innerHTML = `⛔ Votación cerrada (${formatFechaHora(jg.cierre_votacion)})`;
                         r3.innerHTML = `Esperando validación del admin...`;
+                        totalBox.innerHTML = '';
+                        porraBox.innerHTML = buildPorraCardResumen(jg, yo || null);
                         btn.classList.add('hidden');
+                        btn.disabled = true;
                     } else {
                         const b2 = yo?.apuesta2 ?? 0;
                         const b3 = yo?.apuesta3 ?? 0;
@@ -1003,7 +1702,16 @@
                                         Créditos apostados: <b>${b3}</b><br>
                                         Ganancia potencial: <b>${b3 * 3}</b> pts`;
 
+                        totalBox.innerHTML = `
+                            <div class="bet-total-box ok">
+                                <strong>Total: ${Number(b2) + Number(b3)} / ${Number(b2) + Number(b3)} créditos</strong>
+                                <div class="small-help">Apuesta enviada correctamente.</div>
+                            </div>
+                        `;
+                        porraBox.innerHTML = buildPorraCardResumen(jg, yo || null);
+
                         btn.classList.add('hidden');
+                        btn.disabled = true;
 
                         userIsSelecting = false;
                         if (__userSelectTimer) clearTimeout(__userSelectTimer);
@@ -1011,7 +1719,10 @@
                 } else {
                     r2.innerHTML = "No hay ronda activa";
                     r3.innerHTML = "";
+                    totalBox.innerHTML = "";
+                    porraBox.innerHTML = "";
                     btn.classList.add('hidden');
+                    btn.disabled = true;
                 }
             }
 
@@ -1042,6 +1753,10 @@
                     ronda_id: 0,
                     ronda_num: nuevaRondaNum,
                     cierre_votacion: cierreISO,
+                    creditos_habilitados: false,
+                    porra_goles_bilawal: null,
+                    porra_goles_rival: null,
+                    porra_validada: false
                 })
                 .eq('id', 1);
 
@@ -1051,23 +1766,26 @@
                 seleccion2: null,
                 seleccion3: null,
                 apuesta2: 0,
-                apuesta3: 0
+                apuesta3: 0,
+                creditos: 0,
+                porra_bilawal: null,
+                porra_rival: null
             }).neq('nombre','');
 
             if (e2) { console.error(e2); return alert("Ronda creada, pero error al limpiar selecciones."); }
 
+            resetDraftState(true);
             userIsSelecting = false;
             adminIsSelecting = false;
             if (__userSelectTimer) clearTimeout(__userSelectTimer);
             if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
 
             alert(`Ronda ${nuevaRondaNum} iniciada.\nCierre: ${formatFechaHora(cierreISO)}\nRecuerda habilitar créditos.`);
+            await refrescar();
         }
 
         async function votar() {
-            const v2 = document.querySelector('input[name="c2"]:checked')?.value;
-            const v3 = document.querySelector('input[name="c3"]:checked')?.value;
-            if(!v2 || !v3) return alert("Elige ambas opciones");
+            if (!draftSel2 || !draftSel3) return alert("Elige ambas opciones.");
 
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('*').eq('id', 1).single();
             if (eJg) { console.error(eJg); return alert("Error comprobando estado de la ronda."); }
@@ -1080,35 +1798,55 @@
             if (credits === 0) return alert("No tienes créditos. Si el admin habilitó la entrega, pulsa 'Recoger créditos'.");
             if (credits !== 5 && credits !== 6) return alert("Tus créditos deben ser 5 o 6 para apostar esta semana.");
 
-            const total = credits;
-            let bet1 = prompt(`¿Cuántos créditos apuestas al pronóstico de 1 punto? (mín 1, máx ${total - 1})`);
-            if (bet1 === null) return;
-            bet1 = parseInt(bet1, 10);
-            if (Number.isNaN(bet1) || bet1 < 1 || bet1 > (total - 1)) return alert(`Debe ser un número entre 1 y ${total - 1}.`);
+            if (!Number.isInteger(draftBet2) || !Number.isInteger(draftBet3)) {
+                return alert("Tienes que seleccionar los créditos apostados en ambas categorías.");
+            }
 
-            const bet3 = total - bet1;
-            if (bet3 < 1) return alert("Debes apostar al menos 1 crédito al pronóstico de 3 puntos.");
+            if (draftBet2 < 1 || draftBet3 < 1) {
+                return alert("Debes apostar al menos 1 crédito al pronóstico de 1 punto y 1 crédito al de 3 puntos.");
+            }
 
-            const ok = confirm(`Confirmar apuesta:\n- 1 punto: ${bet1} créditos (potencial: ${bet1 * 1} pts)\n- 3 puntos: ${bet3} créditos (potencial: ${bet3 * 3} pts)\nTotal: ${total}`);
+            if ((draftBet2 + draftBet3) !== credits) {
+                return alert(`Debes repartir exactamente los ${credits} créditos.`);
+            }
+
+            const porraState = getPorraDraftState();
+            if (!porraState.ok) return alert(porraState.msg);
+
+            const ok = confirm(
+                `Confirmar apuesta:\n` +
+                `- 1 punto: ${draftSel2} (${draftBet2} créditos)\n` +
+                `- 3 puntos: ${draftSel3} (${draftBet3} créditos)\n` +
+                `- Marcador exacto: ${porraState.empty ? 'Sin porra exacta' : `${porraState.a}-${porraState.b}`}\n` +
+                `Total: ${credits} créditos`
+            );
             if (!ok) return;
 
             const { error } = await sb.from('jugadores').update({
-                seleccion2: v2,
-                seleccion3: v3,
-                apuesta2: bet1,
-                apuesta3: bet3,
-                creditos: 0
+                seleccion2: draftSel2,
+                seleccion3: draftSel3,
+                apuesta2: draftBet2,
+                apuesta3: draftBet3,
+                creditos: 0,
+                porra_bilawal: porraState.empty ? null : porraState.a,
+                porra_rival: porraState.empty ? null : porraState.b
             }).eq('nombre', miNombre);
 
             if (error) { console.error(error); return alert("Error al enviar apuesta."); }
 
             userIsSelecting = false;
             if (__userSelectTimer) clearTimeout(__userSelectTimer);
+
+            alert("Apuesta enviada ✅");
+            await refrescar();
         }
 
         async function puntuar() {
             const w2 = Array.from(document.querySelectorAll('input[name="admwin2"]:checked')).map(x => x.value);
             const w3 = Array.from(document.querySelectorAll('input[name="admwin3"]:checked')).map(x => x.value);
+
+            const exactAraw = document.getElementById('adm-porra-bila').value.trim();
+            const exactBraw = document.getElementById('adm-porra-rival').value.trim();
 
             const { data: jg, error: eJg } = await sb.from('estado_juego').select('*').eq('id', 1).single();
             if (eJg) { console.error(eJg); return alert("Error leyendo estado de ronda."); }
@@ -1124,15 +1862,44 @@
                 return alert(`Error validando ganadores: ${error.message}`);
             }
 
+            const hayExactA = exactAraw !== '';
+            const hayExactB = exactBraw !== '';
+
+            if (hayExactA || hayExactB) {
+                if (!hayExactA || !hayExactB) {
+                    return alert("Para validar la porra exacta tienes que rellenar ambos goles.");
+                }
+
+                const gBilawal = Number(exactAraw);
+                const gRival = Number(exactBraw);
+
+                if (!Number.isInteger(gBilawal) || !Number.isInteger(gRival) || gBilawal < 0 || gRival < 0) {
+                    return alert("El marcador exacto debe ser con enteros iguales o mayores que 0.");
+                }
+
+                if (!jg?.porra_validada) {
+                    const { error: ep } = await sb.rpc('validar_porra', {
+                        g_bilawal: gBilawal,
+                        g_rival: gRival
+                    });
+
+                    if (ep) {
+                        console.error("RPC validar_porra error:", ep);
+                        return alert(`Error validando la porra exacta: ${ep.message}`);
+                    }
+                }
+            }
+
             const { error: eCut } = await sb.from('estado_juego')
-              .update({ creditos_habilitados: false })
-              .eq('id', 1);
+                .update({ creditos_habilitados: false })
+                .eq('id', 1);
             if (eCut) console.error("Error deshabilitando créditos:", eCut);
 
             adminIsSelecting = false;
             if (__adminSelectTimer) clearTimeout(__adminSelectTimer);
 
-            alert("Ganadores validados ✅ (puntos por apuestas + racha actualizada)");
+            alert("Ganadores validados ✅");
+            await refrescar();
         }
 
         function iniciar() {
