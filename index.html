@@ -293,12 +293,12 @@
             display:flex;
             align-items:center;
             justify-content:space-between;
-            gap:12px;
-            padding:16px 14px;
-            border-radius:16px;
+            gap:10px;
+            padding:12px 12px;
+            border-radius:14px;
             border:2px solid #d4d4d8;
             background:#ffffff;
-            margin:10px 0;
+            margin:8px 0;
             cursor:pointer;
             user-select:none;
             appearance:none;
@@ -306,28 +306,28 @@
             text-align:left;
             color:#111827;
         }
-
+        
         .pick-item:hover { border-color:#9ca3af; }
-
+        
         .pick-item.selected {
             border-color:#065f46;
             background:#d1fae5;
             color:#065f46;
             box-shadow: inset 0 0 0 1px #065f46;
         }
-
+        
         .pick-main {
             flex:1;
             min-width:0;
             font-weight:800;
-            font-size:18px;
-            line-height:1.2;
+            font-size:16px;
+            line-height:1.15;
             word-break:break-word;
         }
-
+        
         .pick-check {
-            width:34px;
-            height:34px;
+            width:28px;
+            height:28px;
             border-radius:999px;
             display:flex;
             align-items:center;
@@ -335,51 +335,51 @@
             background:#e5e7eb;
             color:transparent;
             font-weight:900;
-            font-size:20px;
+            font-size:17px;
             flex: 0 0 auto;
         }
-
+        
         .pick-item.selected .pick-check {
             background:#dcfce7;
             color:#065f46;
         }
-
+        
         .bet-controls {
-            margin-top: 14px;
-            padding-top: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
             border-top: 1px solid #e5e7eb;
         }
-
+        
         .bet-label {
-            font-size: 14px;
+            font-size: 13px;
             color:#475569;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-
+        
         .bet-row {
-            display:flex;
-            gap:12px;
-            flex-wrap:wrap;
+            display:grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap:8px;
         }
-
+        
         .bet-pill {
-            width:72px;
-            min-width:72px;
-            padding:14px 0;
-            border-radius:16px;
+            width:100%;
+            min-width:0;
+            padding:10px 0;
+            border-radius:12px;
             border:2px solid #065f46;
             background:#ffffff;
             color:#065f46;
-            font-size:18px;
+            font-size:16px;
             font-weight:800;
             margin:0;
         }
-
+        
         .bet-pill.selected {
             background:#065f46;
             color:#ffffff;
         }
-
+        
         .bet-pill.disabled,
         .bet-pill:disabled {
             border-color:#d1d5db;
@@ -408,11 +408,11 @@
         }
 
         .porra-card {
-            margin-top: 14px;
+            margin-top: 12px;
             background: #efe7f2;
             border-left: 5px solid #a21caf;
-            border-radius: 16px;
-            padding: 16px 14px;
+            border-radius: 14px;
+            padding: 14px 12px;
             text-align:left;
         }
 
@@ -433,8 +433,8 @@
 
         .score-grid {
             display:grid;
-            grid-template-columns: 1fr 24px 1fr;
-            gap:12px;
+            grid-template-columns: 1fr 20px 1fr;
+            gap:10px;
             align-items:end;
         }
 
@@ -452,10 +452,10 @@
 
         .score-input {
             width:100%;
-            height:76px;
+            height:64px;
             text-align:center;
-            font-size:34px;
-            border-radius:20px;
+            font-size:28px;
+            border-radius:16px;
             border:3px solid #a21caf;
             background:#fff;
             color:#111827;
@@ -464,10 +464,10 @@
 
         .score-sep {
             text-align:center;
-            font-size:42px;
+            font-size:34px;
             font-weight:900;
             color:#111827;
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
 
         .score-result {
