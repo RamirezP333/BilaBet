@@ -66,14 +66,6 @@
             transform: none;
         }
 
-        .btn-del {
-            background: #ef4444;
-            width: auto;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin-left: 5px;
-        }
-
         .hidden { display: none !important; }
 
         .admin-section {
@@ -83,20 +75,6 @@
             margin-bottom: 15px;
             text-align: left;
             border: 1px solid #cbd5e1;
-        }
-
-        .table-mini {
-            width: 100%;
-            font-size: 12px;
-            border-collapse: collapse;
-            background: white;
-            margin-top: 10px;
-        }
-
-        .table-mini td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: center;
         }
 
         .info-table-user {
@@ -306,16 +284,16 @@
             text-align:left;
             color:#111827;
         }
-        
+
         .pick-item:hover { border-color:#9ca3af; }
-        
+
         .pick-item.selected {
             border-color:#065f46;
             background:#d1fae5;
             color:#065f46;
             box-shadow: inset 0 0 0 1px #065f46;
         }
-        
+
         .pick-main {
             flex:1;
             min-width:0;
@@ -324,7 +302,7 @@
             line-height:1.15;
             word-break:break-word;
         }
-        
+
         .pick-check {
             width:28px;
             height:28px;
@@ -338,32 +316,34 @@
             font-size:17px;
             flex: 0 0 auto;
         }
-        
+
         .pick-item.selected .pick-check {
             background:#dcfce7;
             color:#065f46;
         }
-        
+
         .bet-controls {
             margin-top: 10px;
             padding-top: 10px;
             border-top: 1px solid #e5e7eb;
         }
-        
+
         .bet-label {
             font-size: 13px;
             color:#475569;
             margin-bottom: 8px;
         }
-        
+
         .bet-row {
-            display:grid;
-            grid-template-columns: repeat(5, 1fr);
+            display:flex;
             gap:8px;
-        }
-        
-        .bet-pill {
+            flex-wrap:nowrap;
             width:100%;
+        }
+
+        .bet-pill {
+            flex:1 1 0;
+            width:auto;
             min-width:0;
             padding:10px 0;
             border-radius:12px;
@@ -374,12 +354,12 @@
             font-weight:800;
             margin:0;
         }
-        
+
         .bet-pill.selected {
             background:#065f46;
             color:#ffffff;
         }
-        
+
         .bet-pill.disabled,
         .bet-pill:disabled {
             border-color:#d1d5db;
@@ -502,14 +482,14 @@
             color: #166534;
             text-align: center;
         }
-        
+
         .next-match-card .label {
             font-size: 12px;
             font-weight: 700;
             margin-bottom: 4px;
             color: #15803d;
         }
-        
+
         .next-match-card .rival {
             font-size: 20px;
             font-weight: 900;
@@ -620,7 +600,7 @@
 
         <div class="admin-section">
             <h4>3. Créditos semanales</h4>
-            <div class="small-help">Permite que los usuarios recojan sus créditos (solo si tienen 0). Si tienen racha (>=2) recibirán 6.</div>
+            <div class="small-help">Permite que los usuarios recojan sus créditos. Si tienen racha (>=2) recibirán 6; si no, 5.</div>
             <button onclick="habilitarEntregaCreditos()" style="background:#0ea5e9">HABILITAR ENTREGA DE CRÉDITOS</button>
         </div>
 
@@ -637,13 +617,14 @@
                     <input type="time" id="adm-cierre-hora">
                 </div>
             </div>
+
             <div class="small-help">La votación se cerrará automáticamente en esa fecha/hora (hora local del dispositivo).</div>
 
             <label for="adm-siguiente-rival" style="font-size:13px; font-weight:bold;">⚽ Próximo rival</label>
             <input type="text" id="adm-siguiente-rival" placeholder="Ej: Atlético Benahadux">
 
-            <textarea id="adm-o2" placeholder="Opciones 1 PTO (Ej: Messi, Cristiano)"></textarea>
-            <textarea id="adm-o3" placeholder="Opciones 3 PTOS (Ej: 2-1, 3-0)"></textarea>
+            <textarea id="adm-o2" placeholder="Opciones 1 PTO (separadas por coma)"></textarea>
+            <textarea id="adm-o3" placeholder="Opciones 3 PTOS (separadas por coma)"></textarea>
             <button onclick="lanzar()" style="background:#2563eb">ACTIVAR RONDA</button>
         </div>
 
@@ -723,16 +704,18 @@
 
         <div id="votos-ui">
             <div id="next-match-box"></div>
+
             <div style="margin:10px 0 14px; padding:12px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px; font-weight:700; text-align:center;">
-                ⚠️ Recuerda: tienes que apostar <b>todos tus créditos</b> y mínimo 1 a cada pronóstico.
+                ⚠️ Recuerda: tienes que apostar <b>todos tus créditos</b>, mínimo 1 al pronóstico de 1 punto y mínimo 1 al de 3 puntos.
             </div>
+
             <div class="vote-box">
-                <strong>VALE 1 PUNTO:</strong>
+                <strong>VALE 1 PUNTO (C2):</strong>
                 <div id="render-o2"></div>
             </div>
 
             <div class="vote-box">
-                <strong>VALE 3 PUNTOS:</strong>
+                <strong>VALE 3 PUNTOS (C3):</strong>
                 <div id="render-o3"></div>
             </div>
 
@@ -759,7 +742,6 @@
 
         let miNombre = "";
         let esAdmin = false;
-        const IMAGEN_ESTADO = "Bilawal.jpeg";
 
         let refreshIntervalId = null;
         let countdownIntervalId = null;
@@ -817,6 +799,10 @@
             return (txt || "").split(',').map(x => x.trim()).filter(Boolean);
         }
 
+        function splitCorrectas(txt) {
+            return (txt || "").split(',').map(x => x.trim()).filter(Boolean);
+        }
+
         function parseCierreLocalToISO(fecha, hora) {
             if (!fecha || !hora) return null;
             const d = new Date(`${fecha}T${hora}:00`);
@@ -839,7 +825,6 @@
             const cierreMs = jg?.cierre_votacion ? new Date(jg.cierre_votacion).getTime() : null;
 
             if (!jg || (!jg.opciones2?.length && !jg.opciones3?.length)) return { txt: 'Sin ronda activa', cls: '' };
-            if (jg.ronda_id === 1 && !jg.porra_validada) return { txt: `Ronda ${jg.ronda_num || 0} finalizada (porra pendiente)`, cls: 'status-final' };
             if (jg.ronda_id === 1) return { txt: `Ronda ${jg.ronda_num || 0} finalizada`, cls: 'status-final' };
             if (cierreMs && ahora >= cierreMs) return { txt: `Ronda ${jg.ronda_num || 0} cerrada (pendiente validar)`, cls: 'status-closed' };
             return { txt: `Ronda ${jg.ronda_num || 0} abierta`, cls: 'status-open' };
@@ -1012,6 +997,25 @@
             }).join('');
         }
 
+        function renderSiguienteRival(jg) {
+            const box = document.getElementById('next-match-box');
+            if (!box) return;
+
+            const rival = (jg?.siguiente_rival || '').trim();
+
+            if (!rival) {
+                box.innerHTML = '';
+                return;
+            }
+
+            box.innerHTML = `
+                <div class="next-match-card">
+                    <div class="label">PRÓXIMO PARTIDO</div>
+                    <div class="rival">Bilawal FC vs ${escapeHtml(rival)}</div>
+                </div>
+            `;
+        }
+
         function actualizarSelectsAdmin() {
             if (!esAdmin) return;
 
@@ -1025,16 +1029,20 @@
             }
 
             const selP = document.getElementById('adm-select-player');
-            const currentP = selP.value;
-            selP.innerHTML = `<option value="">(Nuevo jugador)</option>` + __statsCache
-                .map(s => `<option value="${escapeHtml(s.sujeto)}">${escapeHtml(s.sujeto)}</option>`).join('');
-            selP.value = currentP || '';
+            if (selP) {
+                const currentP = selP.value;
+                selP.innerHTML = `<option value="">(Nuevo jugador)</option>` + __statsCache
+                    .map(s => `<option value="${escapeHtml(s.sujeto)}">${escapeHtml(s.sujeto)}</option>`).join('');
+                selP.value = currentP || '';
+            }
 
             const selU = document.getElementById('adm-select-user');
-            const currentU = selU.value;
-            selU.innerHTML = `<option value="">(Selecciona un usuario)</option>` + __usersCache
-                .map(u => `<option value="${escapeHtml(u.nombre)}">@${escapeHtml(u.nombre)}</option>`).join('');
-            selU.value = currentU || '';
+            if (selU) {
+                const currentU = selU.value;
+                selU.innerHTML = `<option value="">(Selecciona un usuario)</option>` + __usersCache
+                    .map(u => `<option value="${escapeHtml(u.nombre)}">@${escapeHtml(u.nombre)}</option>`).join('');
+                selU.value = currentU || '';
+            }
         }
 
         function cargarTeamSeleccionado() {
@@ -1061,49 +1069,6 @@
             document.getElementById('team-gf').value = t.gf ?? 0;
             document.getElementById('team-gc').value = t.gc ?? 0;
             document.getElementById('team-pts').value = t.pts ?? 0;
-        }
-
-        async function guardarTeam() {
-            const equipo = document.getElementById('team-nombre').value.trim();
-            if (!equipo) return alert("Nombre de equipo obligatorio.");
-
-            const payload = {
-                equipo,
-                j: parseInt(document.getElementById('team-j').value || 0, 10),
-                g: parseInt(document.getElementById('team-g').value || 0, 10),
-                e: parseInt(document.getElementById('team-e').value || 0, 10),
-                p: parseInt(document.getElementById('team-p').value || 0, 10),
-                gf: parseInt(document.getElementById('team-gf').value || 0, 10),
-                gc: parseInt(document.getElementById('team-gc').value || 0, 10),
-                pts: parseInt(document.getElementById('team-pts').value || 0, 10),
-            };
-
-            const { error } = await sb.from('liga_clasificacion').upsert(payload, { onConflict: 'equipo' });
-            if (error) {
-                console.error(error);
-                return alert("Error guardando equipo.");
-            }
-
-            alert("Equipo guardado ✅");
-            document.getElementById('adm-select-team').value = equipo;
-            await refrescar();
-        }
-
-        async function eliminarTeamSeleccionado() {
-            const equipo = document.getElementById('adm-select-team').value;
-            if (!equipo) return alert("Selecciona un equipo.");
-            if (!confirm(`¿Eliminar el equipo "${equipo}" de la clasificación?`)) return;
-
-            const { error } = await sb.from('liga_clasificacion').delete().eq('equipo', equipo);
-            if (error) {
-                console.error(error);
-                return alert("Error eliminando equipo.");
-            }
-
-            alert("Equipo eliminado ✅");
-            document.getElementById('adm-select-team').value = "";
-            cargarTeamSeleccionado();
-            await refrescar();
         }
 
         function cargarPlayerSeleccionado() {
@@ -1137,6 +1102,61 @@
             document.getElementById('adm-user-credits').value = u.creditos ?? 0;
             document.getElementById('adm-user-streak').value = u.racha_actual ?? 0;
             document.getElementById('adm-user-beststreak').value = u.mejor_racha ?? 0;
+        }
+
+        async function guardarTeam() {
+            const equipo = document.getElementById('team-nombre').value.trim();
+            if (!equipo) return alert("Nombre de equipo obligatorio.");
+
+            const payload = {
+                equipo,
+                j: parseInt(document.getElementById('team-j').value || 0, 10),
+                g: parseInt(document.getElementById('team-g').value || 0, 10),
+                e: parseInt(document.getElementById('team-e').value || 0, 10),
+                p: parseInt(document.getElementById('team-p').value || 0, 10),
+                gf: parseInt(document.getElementById('team-gf').value || 0, 10),
+                gc: parseInt(document.getElementById('team-gc').value || 0, 10),
+                pts: parseInt(document.getElementById('team-pts').value || 0, 10),
+            };
+
+            const { error } = await sb.from('liga_clasificacion').upsert(payload, { onConflict: 'equipo' });
+            if (error) { console.error(error); return alert("Error guardando equipo."); }
+
+            alert("Equipo guardado ✅");
+            document.getElementById('adm-select-team').value = equipo;
+            await refrescar();
+        }
+
+        async function eliminarTeamSeleccionado() {
+            const equipo = document.getElementById('adm-select-team').value;
+            if (!equipo) return alert("Selecciona un equipo.");
+            if (!confirm(`¿Eliminar el equipo "${equipo}" de la clasificación?`)) return;
+
+            const { error } = await sb.from('liga_clasificacion').delete().eq('equipo', equipo);
+            if (error) { console.error(error); return alert("Error eliminando equipo."); }
+
+            alert("Equipo eliminado ✅");
+            document.getElementById('adm-select-team').value = "";
+            cargarTeamSeleccionado();
+            await refrescar();
+        }
+
+        async function guardarFila() {
+            const s = document.getElementById('info-sujeto').value.trim();
+            const g = document.getElementById('info-goles').value;
+            const a = document.getElementById('info-am').value || 0;
+            const r = document.getElementById('info-ro').value || 0;
+            if (!s) return alert("Nombre obligatorio");
+
+            const { error } = await sb.from('estadisticas').upsert(
+                { sujeto: s, dato1: g, dato2: a, dato3: r },
+                { onConflict: 'sujeto' }
+            );
+            if (error) { console.error(error); return alert("Error guardando jugador."); }
+
+            alert("Guardado ✅");
+            document.getElementById('adm-select-player').value = s;
+            await refrescar();
         }
 
         async function eliminarJugadorSeleccionado() {
@@ -1201,9 +1221,10 @@
         }
 
         function renderAdminValidacion(jg) {
+            if (!esAdmin) return;
+
             const box2 = document.getElementById('adm-win2-list');
             const box3 = document.getElementById('adm-win3-list');
-            if (!esAdmin) return;
 
             if (!jg || (!jg.opciones2?.length && !jg.opciones3?.length)) {
                 box2.innerHTML = `<div style="font-size:12px; color:#64748b;">No hay ronda activa.</div>`;
@@ -1211,16 +1232,19 @@
                 return;
             }
 
+            const corr2 = splitCorrectas(jg.correcta2);
+            const corr3 = splitCorrectas(jg.correcta3);
+
             box2.innerHTML = (jg.opciones2 || []).map((o) => `
                 <label class="check-item">
-                    <input type="checkbox" name="admwin2" value="${escapeHtml(o)}">
+                    <input type="checkbox" name="admwin2" value="${escapeHtml(o)}" ${corr2.includes(o) ? 'checked' : ''}>
                     <span>${escapeHtml(o)}</span>
                 </label>
             `).join('') || `<div style="font-size:12px; color:#64748b;">Sin opciones.</div>`;
 
             box3.innerHTML = (jg.opciones3 || []).map((o) => `
                 <label class="check-item">
-                    <input type="checkbox" name="admwin3" value="${escapeHtml(o)}">
+                    <input type="checkbox" name="admwin3" value="${escapeHtml(o)}" ${corr3.includes(o) ? 'checked' : ''}>
                     <span>${escapeHtml(o)}</span>
                 </label>
             `).join('') || `<div style="font-size:12px; color:#64748b;">Sin opciones.</div>`;
@@ -1234,6 +1258,13 @@
 
             inputA.value = jg?.porra_goles_bilawal ?? '';
             inputB.value = jg?.porra_goles_rival ?? '';
+        }
+
+        function renderAdminSiguienteRival(jg) {
+            if (!esAdmin) return;
+            const inp = document.getElementById('adm-siguiente-rival');
+            if (!inp) return;
+            inp.value = jg?.siguiente_rival || '';
         }
 
         function resetDraftState(forceAll = false) {
@@ -1416,24 +1447,6 @@
                 </div>
             `;
         }
-        function renderSiguienteRival(jg) {
-            const box = document.getElementById('next-match-box');
-            if (!box) return;
-        
-            const rival = (jg?.siguiente_rival || '').trim();
-        
-            if (!rival) {
-                box.innerHTML = '';
-                return;
-            }
-        
-            box.innerHTML = `
-                <div class="next-match-card">
-                    <div class="label">PRÓXIMO PARTIDO</div>
-                    <div class="rival">Bilawal FC vs ${escapeHtml(rival)}</div>
-                </div>
-            `;
-        }
 
         function buildPorraCardEditable(jg) {
             const rivalTxt = jg?.siguiente_rival || 'RIVAL';
@@ -1447,7 +1460,6 @@
                             <label>BILAWAL</label>
                             <input
                                 class="score-input"
-                                id="porra-bila-input"
                                 type="number"
                                 min="0"
                                 step="1"
@@ -1464,7 +1476,6 @@
                             <label>${escapeHtml(rivalTxt)}</label>
                             <input
                                 class="score-input"
-                                id="porra-rival-input"
                                 type="number"
                                 min="0"
                                 step="1"
@@ -1547,11 +1558,6 @@
                 btn.disabled = true;
                 return;
             }
-            function renderAdminSiguienteRival(jg) {
-                const inp = document.getElementById('adm-siguiente-rival');
-                if (!inp) return;
-                inp.value = jg?.siguiente_rival || '';
-            }
 
             const totalCreditos = Number(yo?.creditos ?? 0);
 
@@ -1573,12 +1579,11 @@
             miNombre = document.getElementById('username').value.trim().toLowerCase().replace('@','');
             if (!miNombre) return;
 
-            const { error } = await sb.from('jugadores')
-                .upsert({ nombre: miNombre }, { onConflict: 'nombre' });
+            const { error } = await sb.from('jugadores').upsert({ nombre: miNombre }, { onConflict: 'nombre' });
 
             if (error) {
                 console.error("Error entrar:", error);
-                alert(`Error al entrar:\n${error.message || error}\n\nCode: ${error.code || ''}`);
+                alert(`Error al entrar:\n${error.message || error}`);
                 return;
             }
 
@@ -1612,25 +1617,6 @@
 
                 iniciar();
             }
-        }
-
-        async function guardarFila() {
-            const s = document.getElementById('info-sujeto').value.trim();
-            const g = document.getElementById('info-goles').value;
-            const a = document.getElementById('info-am').value || 0;
-            const r = document.getElementById('info-ro').value || 0;
-            if (!s) return alert("Nombre obligatorio");
-
-            const { error } = await sb.from('estadisticas').upsert(
-                { sujeto: s, dato1: g, dato2: a, dato3: r },
-                { onConflict: 'sujeto' }
-            );
-
-            if (error) { console.error(error); return alert("Error guardando jugador."); }
-
-            alert("Guardado ✅");
-            document.getElementById('adm-select-player').value = s;
-            await refrescar();
         }
 
         async function recogerCreditos() {
@@ -1669,7 +1655,9 @@
                 sb.from('liga_clasificacion').select('*')
             ]);
 
-            if (e1 || e2 || e3 || e4 || e5) console.error("Errores refrescar:", e1, e2, e3, e4, e5);
+            if (e1 || e2 || e3 || e4 || e5) {
+                console.error("Errores refrescar:", e1, e2, e3, e4, e5);
+            }
 
             window.__lastEstadoJuego = jg || null;
             window.__lastYo = yo || null;
@@ -1794,11 +1782,12 @@
             const cierreISO = parseCierreLocalToISO(fechaCierre, horaCierre);
             if (!cierreISO) return alert("Debes indicar fecha y hora de cierre válidas.");
 
+            const siguienteRival = document.getElementById('adm-siguiente-rival').value.trim();
+
             const { data: estadoActual, error: eGet } = await sb.from('estado_juego').select('ronda_num').eq('id', 1).single();
             if (eGet) { console.error(eGet); return alert("Error leyendo estado actual."); }
 
             const nuevaRondaNum = (estadoActual?.ronda_num || 0) + 1;
-            const siguienteRival = document.getElementById('adm-siguiente-rival').value.trim();
 
             const { error: e1 } = await sb.from('estado_juego')
                 .update({
@@ -1934,16 +1923,14 @@
                     return alert("El marcador exacto debe ser con enteros iguales o mayores que 0.");
                 }
 
-                if (!jg?.porra_validada) {
-                    const { error: ep } = await sb.rpc('validar_porra', {
-                        g_bilawal: gBilawal,
-                        g_rival: gRival
-                    });
+                const { error: ep } = await sb.rpc('validar_porra', {
+                    g_bilawal: gBilawal,
+                    g_rival: gRival
+                });
 
-                    if (ep) {
-                        console.error("RPC validar_porra error:", ep);
-                        return alert(`Error validando la porra exacta: ${ep.message}`);
-                    }
+                if (ep) {
+                    console.error("RPC validar_porra error:", ep);
+                    return alert(`Error validando la porra exacta: ${ep.message}`);
                 }
             }
 
