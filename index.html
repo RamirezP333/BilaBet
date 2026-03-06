@@ -493,6 +493,29 @@
             color:#64748b;
         }
 
+        .next-match-card {
+            margin: 10px 0 14px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            text-align: center;
+        }
+        
+        .next-match-card .label {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #15803d;
+        }
+        
+        .next-match-card .rival {
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
         .liga-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
         .liga-table th { background:#111827; color:white; padding:8px 6px; border:1px solid #0f172a; font-weight:700; }
         .liga-table td { padding:8px 6px; border:1px solid #e5e7eb; text-align:center; background:#fff; }
@@ -616,6 +639,9 @@
             </div>
             <div class="small-help">La votación se cerrará automáticamente en esa fecha/hora (hora local del dispositivo).</div>
 
+            <label for="adm-siguiente-rival" style="font-size:13px; font-weight:bold;">⚽ Próximo rival</label>
+            <input type="text" id="adm-siguiente-rival" placeholder="Ej: Atlético Benahadux">
+
             <textarea id="adm-o2" placeholder="Opciones 1 PTO (Ej: Messi, Cristiano)"></textarea>
             <textarea id="adm-o3" placeholder="Opciones 3 PTOS (Ej: 2-1, 3-0)"></textarea>
             <button onclick="lanzar()" style="background:#2563eb">ACTIVAR RONDA</button>
@@ -696,6 +722,7 @@
         </div>
 
         <div id="votos-ui">
+            <div id="next-match-box"></div>
             <div style="margin:10px 0 14px; padding:12px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px; font-weight:700; text-align:center;">
                 ⚠️ Recuerda: tienes que apostar <b>todos tus créditos</b> y mínimo 1 a cada pronóstico.
             </div>
@@ -1389,6 +1416,24 @@
                 </div>
             `;
         }
+        function renderSiguienteRival(jg) {
+            const box = document.getElementById('next-match-box');
+            if (!box) return;
+        
+            const rival = (jg?.siguiente_rival || '').trim();
+        
+            if (!rival) {
+                box.innerHTML = '';
+                return;
+            }
+        
+            box.innerHTML = `
+                <div class="next-match-card">
+                    <div class="label">PRÓXIMO PARTIDO</div>
+                    <div class="rival">Bilawal FC vs ${escapeHtml(rival)}</div>
+                </div>
+            `;
+        }
 
         function buildPorraCardEditable(jg) {
             const rivalTxt = jg?.siguiente_rival || 'RIVAL';
@@ -1501,6 +1546,11 @@
                 btn.classList.add('hidden');
                 btn.disabled = true;
                 return;
+            }
+            function renderAdminSiguienteRival(jg) {
+                const inp = document.getElementById('adm-siguiente-rival');
+                if (!inp) return;
+                inp.value = jg?.siguiente_rival || '';
             }
 
             const totalCreditos = Number(yo?.creditos ?? 0);
@@ -1630,10 +1680,12 @@
 
             actualizarSelectsAdmin();
             renderLiga(__ligaCache);
+            renderSiguienteRival(jg || null);
 
             if (!adminIsSelecting) {
                 renderAdminValidacion(jg || null);
                 renderAdminPorra(jg || null);
+                renderAdminSiguienteRival(jg || null);
             }
 
             document.getElementById('info-content-user').innerHTML = (__statsCache || []).map(s =>
@@ -1746,6 +1798,7 @@
             if (eGet) { console.error(eGet); return alert("Error leyendo estado actual."); }
 
             const nuevaRondaNum = (estadoActual?.ronda_num || 0) + 1;
+            const siguienteRival = document.getElementById('adm-siguiente-rival').value.trim();
 
             const { error: e1 } = await sb.from('estado_juego')
                 .update({
@@ -1759,7 +1812,8 @@
                     creditos_habilitados: false,
                     porra_goles_bilawal: null,
                     porra_goles_rival: null,
-                    porra_validada: false
+                    porra_validada: false,
+                    siguiente_rival: siguienteRival || null
                 })
                 .eq('id', 1);
 
