@@ -706,7 +706,7 @@
             <div id="next-match-box"></div>
 
             <div style="margin:10px 0 14px; padding:12px; border-radius:12px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:14px; font-weight:700; text-align:center;">
-                ⚠️ Recuerda: tienes que apostar <b>todos tus créditos</b>, mínimo 1 al pronóstico de 1 punto y mínimo 1 al de 3 puntos.
+                ⚠️ Recuerda: tienes que apostar <b>todos tus créditos</b>, mínimo 1 al pronóstico de 1 punto y mínimo 1 al de 3 puntos (EJEMPLO: si apuesto 2 créditos a la de 1 punto, tengo que apostar <b> SI O SI</b> los 3 créditos restantes a la de 3 puntos si no.
             </div>
 
             <div class="vote-box">
@@ -728,7 +728,7 @@
         <div style="margin-top:20px;">
             <h4>🏆 RANKING</h4>
             <div style="font-size:12px; color:#64748b; margin-top:-4px; margin-bottom:8px;">
-                Jugadores con racha (>=2) reciben +1 crédito extra esa semana.
+                Jugadores con racha (>=2) reciben +1 crédito extra por semana.
             </div>
             <div id="ranking-list"></div>
         </div>
@@ -1863,7 +1863,7 @@
                 `Confirmar apuesta:\n` +
                 `- 1 punto: ${draftSel2} (${draftBet2} créditos)\n` +
                 `- 3 puntos: ${draftSel3} (${draftBet3} créditos)\n` +
-                `- Marcador exacto: ${porraState.empty ? 'Sin porra exacta' : `${porraState.a}-${porraState.b}`}\n` +
+                `- Marcador exacto: ${porraState.empty ? 'NO HAS APOSTADO AL RESULTADO DEL PARTIDO' : `${porraState.a}-${porraState.b}`}\n` +
                 `Total: ${credits} créditos`
             );
             if (!ok) return;
