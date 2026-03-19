@@ -661,7 +661,7 @@
         <h3 id="user-display"></h3>
         <div id="wallet-display" class="wallet">💼 0 créditos</div>
         
-        <div style="margin:10px 0 14px; padding:16px; border-radius:18px; background:linear-gradient(180deg,#c8ff1a 0%,#b7f000 100%); border:1px solid #a3d900; color:#111111; font-size:14px; font-weight:700; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.12);">
+        <div id="creditos-box" class="hidden" style="margin:10px 0 14px; padding:16px; border-radius:18px; background:linear-gradient(180deg,#c8ff1a 0%,#b7f000 100%); border:1px solid #a3d900; color:#111111; font-size:14px; font-weight:700; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.12);">
             💰 ¡Créditos semanales disponibles! 💰 
             <button id="btn-recoger-creditos" class="hidden" onclick="recogerCreditos()" style="display:block; width:100%; margin-top:12px; background:#000000; color:#ffffff; border:none; border-radius:12px; padding:14px 16px; font-weight:800; font-size:15px; text-transform:uppercase; cursor:pointer;">
                 RECOGER CRÉDITOS
@@ -1693,14 +1693,21 @@
 
             const wallet = document.getElementById('wallet-display');
             const btnCred = document.getElementById('btn-recoger-creditos');
+            const creditosBox = document.getElementById('creditos-box');
             const myCredits = yo?.creditos ?? 0;
             wallet.textContent = `💼 ${myCredits} créditos`;
 
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
+            const mostrarRecogida = !!(miNombre && creditosHabilitados && myCredits === 0 && noHaApostado);
 
-            if (miNombre && creditosHabilitados && myCredits === 0 && noHaApostado) btnCred.classList.remove('hidden');
-            else btnCred.classList.add('hidden');
+            if (mostrarRecogida) {
+                creditosBox.classList.remove('hidden');
+                btnCred.classList.remove('hidden');
+            } else {
+                creditosBox.classList.add('hidden');
+                btnCred.classList.add('hidden');
+            }
 
             const r2 = document.getElementById('render-o2');
             const r3 = document.getElementById('render-o3');
