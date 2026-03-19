@@ -1701,13 +1701,13 @@
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
             const mostrarRecogida = !!(miNombre && creditosHabilitados && myCredits === 0 && noHaApostado);
 
-            if (mostrarRecogida) {
-                creditosBox.classList.remove('hidden');
+            if (miNombre && creditosHabilitados && myCredits === 0 && noHaApostado) {
                 btnCred.classList.remove('hidden');
+                creditosBox.classList.remove('hidden');
             } else {
-                creditosBox.classList.add('hidden');
                 btnCred.classList.add('hidden');
-            }
+                creditosBox.classList.add('hidden');
+            }    
 
             const r2 = document.getElementById('render-o2');
             const r3 = document.getElementById('render-o3');
