@@ -1696,18 +1696,22 @@
             const creditosBox = document.getElementById('creditos-box');
             const myCredits = yo?.creditos ?? 0;
             wallet.textContent = `💼 ${myCredits} créditos`;
-
+            
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
-            const mostrarRecogida = !!(miNombre && creditosHabilitados && myCredits === 0 && noHaApostado);
-
-            if (miNombre && creditosHabilitados && myCredits === 0 && noHaApostado) {
-                btnCred.classList.remove('hidden');
-                creditosBox.classList.remove('hidden');
-            } else {
-                btnCred.classList.add('hidden');
-                creditosBox.classList.add('hidden');
-            }    
+            const puedeRecoger = !!(miNombre && creditosHabilitados && myCredits === 0 && noHaApostado);
+            
+            // Mostrar/ocultar caja
+            if (creditosBox) {
+                if (creditosHabilitados) creditosBox.classList.remove('hidden');
+                else creditosBox.classList.add('hidden');
+            }
+            
+            // Mostrar/ocultar botón
+            if (btnCred) {
+                if (puedeRecoger) btnCred.classList.remove('hidden');
+                else btnCred.classList.add('hidden');
+            }   
 
             const r2 = document.getElementById('render-o2');
             const r3 = document.getElementById('render-o3');
