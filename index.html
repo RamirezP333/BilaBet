@@ -1699,7 +1699,6 @@
             
             const creditosHabilitados = !!jg?.creditos_habilitados;
             const noHaApostado = !(yo?.seleccion2 || yo?.seleccion3);
-            const puedeRecoger = !!(miNombre && creditosHabilitados && myCredits === 0 && noHaApostado);
             
             // Mostrar/ocultar caja
             if (creditosBox) {
@@ -1709,7 +1708,7 @@
             
             // Mostrar/ocultar botón
             if (btnCred) {
-                if (puedeRecoger) btnCred.classList.remove('hidden');
+                if (miNombre && creditosHabilitados && myCredits === 0 && noHaApostado) btnCred.classList.remove('hidden');
                 else btnCred.classList.add('hidden');
             }   
 
