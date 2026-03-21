@@ -1702,7 +1702,7 @@
             
             // Mostrar/ocultar caja
             if (creditosBox) {
-                if (creditosHabilitados) creditosBox.classList.remove('hidden');
+                if (miNombre && creditosHabilitados && myCredits === 0 && noHaApostado) creditosBox.classList.remove('hidden');
                 else creditosBox.classList.add('hidden');
             }
             
